@@ -4249,7 +4249,7 @@ function Airflow:Init(config)
 	windowName.TextColor3 = Color3.fromRGB(255, 255, 255)
 	windowName.TextSize = 15.000
 	windowName.TextTransparency = 1
-  windowName.ZIndex = 10
+    windowName.ZIndex = 10
 
 	static.Name = Airflow:RandomString()
 	static.Parent = WindowFrame
@@ -5668,6 +5668,7 @@ function Airflow:DrawLoader(loader_config : Loader)
 	UIGradient.Color = ColorSequence.new{ColorSequenceKeypoint.new(0.00, Color3.fromRGB(0, 0, 0)), ColorSequenceKeypoint.new(0.87, Color3.fromRGB(0, 0, 0)), ColorSequenceKeypoint.new(0.88, Color3.fromRGB(177, 177, 177)), ColorSequenceKeypoint.new(1.00, Color3.fromRGB(177, 177, 177))}
 	UIGradient.Rotation = -90
 	UIGradient.Transparency = NumberSequence.new{NumberSequenceKeypoint.new(0.00, 0.60), NumberSequenceKeypoint.new(1.00, 0.60)}
+	UIGradient.Thickness = 5
 	UIGradient.Parent = UIStroke
 
 	UICorner.CornerRadius = UDim.new(0, 2)
