@@ -5662,13 +5662,13 @@ function Airflow:DrawLoader(loader_config : Loader)
 	});
 	
 	UIStroke.Transparency = 0.680
+	UIStroke.Thickness = 10
 	UIStroke.Color = Color3.fromRGB(255, 255, 255)
 	UIStroke.Parent = ExeLoader
 
 	UIGradient.Color = ColorSequence.new{ColorSequenceKeypoint.new(0.00, Color3.fromRGB(0, 0, 0)), ColorSequenceKeypoint.new(0.87, Color3.fromRGB(0, 0, 0)), ColorSequenceKeypoint.new(0.88, Color3.fromRGB(177, 177, 177)), ColorSequenceKeypoint.new(1.00, Color3.fromRGB(177, 177, 177))}
 	UIGradient.Rotation = -90
 	UIGradient.Transparency = NumberSequence.new{NumberSequenceKeypoint.new(0.00, 0.60), NumberSequenceKeypoint.new(1.00, 0.60)}
-	UIGradient.Thickness = 5
 	UIGradient.Parent = UIStroke
 
 	UICorner.CornerRadius = UDim.new(0, 2)
