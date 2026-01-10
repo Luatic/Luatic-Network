@@ -5452,7 +5452,6 @@ do
 
 		UIStroke.Transparency = 0.570
 		UIStroke.Color = Color3.fromRGB(66, 66, 66)
-		UIStroke.Thickness = 10
 		UIStroke.Parent = MainFrame
 
 		static.Name = Airflow:RandomString()
@@ -5663,7 +5662,8 @@ function Airflow:DrawLoader(loader_config : Loader)
 	});
 	
 	UIStroke.Transparency = 0.680
-	UIStroke.Color = Color3.fromRGB(255, 255, 255)
+	UIStroke.Thickness = 10
+	UIStroke.Color = Color3.fromRGB(255, 255, 0)
 	UIStroke.Parent = ExeLoader
 
 	UIGradient.Color = ColorSequence.new{ColorSequenceKeypoint.new(0.00, Color3.fromRGB(0, 0, 0)), ColorSequenceKeypoint.new(0.87, Color3.fromRGB(0, 0, 0)), ColorSequenceKeypoint.new(0.88, Color3.fromRGB(177, 177, 177)), ColorSequenceKeypoint.new(1.00, Color3.fromRGB(177, 177, 177))}
