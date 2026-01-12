@@ -4192,7 +4192,7 @@ function Airflow:Init(config)
 	LineV.Size = UDim2.new(1, 0, 0, 1)
 	LineV.ZIndex = 5
 
-	UIStroke.Thickness = 7
+	UIStroke.Thickness = 5
 	UIStroke.Color = Color3.fromRGB(0, 0, 0) 
 	UIStroke.Parent = WindowFrame
 
