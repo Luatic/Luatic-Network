@@ -1143,94 +1143,25 @@ function Airflow:GetCalculatePosition(planePos: number, planeNormal: number, ray
 end;
 
 function Airflow:Blur(element : Frame) : RBXScriptSignal
-	local Part = Instance.new('Part',workspace.Camera);
-	local DepthOfField = Instance.new('DepthOfFieldEffect',cloneref(game:GetService('Lighting')));
-	local BlockMesh = Instance.new("BlockMesh");
-	local userSettings = UserSettings():GetService("UserGameSettings");
-
-	BlockMesh.Parent = Part;
-
-	Part.Material = Enum.Material.Glass;
-	Part.Transparency = 1;
-	Part.Reflectance = 1;
-	Part.CastShadow = false;
-	Part.Anchored = true;
-	Part.CanCollide = false;
-	Part.CanQuery = false;
-	Part.CollisionGroup = Airflow:RandomString();
-	Part.Size = Vector3.new(1, 1, 1) * 0.01;
-	Part.Color = Color3.fromRGB(0,0,0);
-
-	DepthOfField.Enabled = true;
-	DepthOfField.FarIntensity = 0;
-	DepthOfField.FocusDistance = 0;
-	DepthOfField.InFocusRadius = 1000;
-	DepthOfField.NearIntensity = 1;
-	DepthOfField.Name = Airflow:RandomString();
-
-	Part.Name = Airflow:RandomString();
+	local BlurEffect = Instance.new("BlurEffect")
+	BlurEffect.Parent = game:GetService("Lighting")
+	BlurEffect.Size = 0
+	BlurEffect.Name = Airflow:RandomString()
 	
-	local rbxsignal = RunService.RenderStepped:Connect(function()
-		if element.BackgroundTransparency < 0.7 then
-			Airflow:CreateAnimation(DepthOfField,0.1,nil,{
-				NearIntensity = 1
-			})
-
-			Airflow:CreateAnimation(Part,0.1,nil,{
-				Transparency = 0.97,
-			})
-
-			Airflow:CreateAnimation(Part,0.3,nil,{
-				Size = Vector3.new(1, 1, 1) * 0.01;
-			})
+	element:GetPropertyChangedSignal('BackgroundTransparency'):Connect(function()
+		if element.BackgroundTransparency <= 0.9 then
+			Airflow:CreateAnimation(BlurEffect, 0.3, nil, {Size = 24})
 		else
-			Airflow:CreateAnimation(DepthOfField,0.1,nil,{
-				NearIntensity = 0
-			})
-
-			Airflow:CreateAnimation(Part,0.3,nil,{
-				Size = Vector3.zero;
-			})
-
-			Airflow:CreateAnimation(Part,0.1,nil,{
-				Transparency = 1.5,
-			})
-		end;
-
-		if element.BackgroundTransparency <= 0.95 then
-			local corner0 = element.AbsolutePosition;
-			local corner1 = corner0 + element.AbsoluteSize;
-
-			local ray0 = CurrentCamera.ScreenPointToRay(CurrentCamera,corner0.X, corner0.Y, 1);
-			local ray1 = CurrentCamera.ScreenPointToRay(CurrentCamera,corner1.X, corner1.Y, 1);
-
-			local planeOrigin = CurrentCamera.CFrame.Position + CurrentCamera.CFrame.LookVector * (0.05 - CurrentCamera.NearPlaneZ);
-
-			local planeNormal = CurrentCamera.CFrame.LookVector;
-
-			local pos0 = Airflow:GetCalculatePosition(planeOrigin, planeNormal, ray0.Origin, ray0.Direction);
-			local pos1 = Airflow:GetCalculatePosition(planeOrigin, planeNormal, ray1.Origin, ray1.Direction);
-
-			pos0 = CurrentCamera.CFrame:PointToObjectSpace(pos0);
-			pos1 = CurrentCamera.CFrame:PointToObjectSpace(pos1);
-
-			local size   = pos1 - pos0;
-			local center = (pos0 + pos1) / 2;
-
-			BlockMesh.Offset = center
-			BlockMesh.Scale  = size / 0.0101;
-			Part.CFrame = CurrentCamera.CFrame;
-		end;
-	end);
+			Airflow:CreateAnimation(BlurEffect, 0.3, nil, {Size = 0})
+		end
+	end)
 	
 	element.Destroying:Connect(function()
-		rbxsignal:Disconnect();
-		Part:Destroy();
-		DepthOfField:Destroy();
-	end);
+		BlurEffect:Destroy()
+	end)
 	
-	return rbxsignal;
-end;
+	return element:GetPropertyChangedSignal('BackgroundTransparency'):Connect(function() end)
+end
 
 function Airflow:GetIcon(name : string) : string
 	return Airflow.Lucide['lucide-'..tostring(name)] or Airflow.Lucide[name] or Airflow.Lucide[tostring(name)] or "";
