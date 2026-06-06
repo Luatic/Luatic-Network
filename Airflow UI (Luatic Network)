@@ -4212,31 +4212,34 @@ function Airflow:Init(config)
 
 function Response:AddPlayerSidebar(config)
 		config = config or {}
-		config.Title = config.Title or "Player List"
+		config.Title = "Player List"
 
 		local SidebarResponse = {
 			SelectedPlayer = nil,
-			OnSelected = nil,
-			IsMinimized = false
+			OnSelected = nil
 		}
 
 		local SidebarWidth = 180
+		local isMinimized = false
 
+		-- Initial expansion of the main framework container
 		WindowFrame.Size = WindowFrame.Size + UDim2.new(0, SidebarWidth, 0, 0)
 		WindowFrame.Position = WindowFrame.Position + UDim2.new(0, -SidebarWidth / 2, 0, 0)
 
+		-- Shift existing content frames cleanly to the right
 		for _, child in ipairs(WindowFrame:GetChildren()) do
 			if child:IsA("GuiObject") then
 				child.Position = child.Position + UDim2.new(0, SidebarWidth, 0, 0)
 			end
 		end
 
+		-- Sidebar container matching MainFrame background styling flawlessly
 		local SidebarContainer = Instance.new("Frame")
 		SidebarContainer.Name = "SidebarContainer"
 		SidebarContainer.Position = UDim2.new(0, 0, 0, 0)
 		SidebarContainer.Size = UDim2.new(0, SidebarWidth, 1, 0)
-		SidebarContainer.BackgroundColor3 = Color3.fromRGB(24, 24, 28)
-		SidebarContainer.BackgroundTransparency = 0.05
+		SidebarContainer.BackgroundColor3 = Color3.fromRGB(12, 12, 12)
+		SidebarContainer.BackgroundTransparency = 0.3
 		SidebarContainer.BorderSizePixel = 0
 		SidebarContainer.ClipsDescendants = true
 		SidebarContainer.Parent = WindowFrame
@@ -4250,15 +4253,8 @@ function Response:AddPlayerSidebar(config)
 		VerticalDivider.BackgroundTransparency = 0.4
 		VerticalDivider.Parent = SidebarContainer
 
-		local InnerContent = Instance.new("Frame")
-		InnerContent.Name = "InnerContent"
-		InnerContent.Size = UDim2.new(1, 0, 1, 0)
-		InnerContent.BackgroundTransparency = 1
-		InnerContent.ClipsDescendants = true
-		InnerContent.Parent = SidebarContainer
-
 		local HeaderText = Instance.new("TextLabel")
-		HeaderText.Size = UDim2.new(1, -50, 0, 35)
+		HeaderText.Size = UDim2.new(1, -40, 0, 35)
 		HeaderText.Position = UDim2.new(0, 12, 0, 5)
 		HeaderText.BackgroundTransparency = 1
 		HeaderText.Font = Enum.Font.GothamMedium
@@ -4266,26 +4262,28 @@ function Response:AddPlayerSidebar(config)
 		HeaderText.TextColor3 = Color3.fromRGB(255, 255, 255)
 		HeaderText.TextSize = 13
 		HeaderText.TextXAlignment = Enum.TextXAlignment.Left
-		HeaderText.Parent = InnerContent
+		HeaderText.TextTruncate = Enum.TextTruncate.AtEnd
+		HeaderText.Parent = SidebarContainer
 
-		local MinimizeBtn = Instance.new("TextButton")
-		MinimizeBtn.Name = "MinimizeBtn"
-		MinimizeBtn.Size = UDim2.new(0, 30, 0, 35)
-		MinimizeBtn.Position = UDim2.new(1, -35, 0, 5)
-		MinimizeBtn.BackgroundTransparency = 1
-		MinimizeBtn.Font = Enum.Font.GothamBold
-		MinimizeBtn.Text = "[ - ]"
-		MinimizeBtn.TextColor3 = Color3.fromRGB(150, 150, 160)
-		MinimizeBtn.TextSize = 12
-		MinimizeBtn.Parent = SidebarContainer
+		-- Minimize Toggle Button (Guillemet)
+		local MinimizeButton = Instance.new("TextButton")
+		MinimizeButton.Name = "MinimizeSidebar"
+		MinimizeButton.Size = UDim2.fromOffset(20, 20)
+		MinimizeButton.Position = UDim2.new(0, SidebarWidth - 25, 0, 10)
+		MinimizeButton.BackgroundTransparency = 1
+		MinimizeButton.Font = Enum.Font.GothamMedium
+		MinimizeButton.Text = "‹"
+		MinimizeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+		MinimizeButton.TextSize = 18
+		MinimizeButton.ZIndex = 10
+		MinimizeButton.Parent = WindowFrame
 
 		local SearchFrame = Instance.new("Frame")
 		SearchFrame.Size = UDim2.new(1, -24, 0, 28)
 		SearchFrame.Position = UDim2.new(0, 12, 0, 42)
 		SearchFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
 		SearchFrame.BackgroundTransparency = 0.3
-		SearchFrame.ClipsDescendants = true
-		SearchFrame.Parent = InnerContent
+		SearchFrame.Parent = SidebarContainer
 		
 		local SearchCorner = Instance.new("UICorner")
 		SearchCorner.CornerRadius = UDim.new(0, 4)
@@ -4297,7 +4295,7 @@ function Response:AddPlayerSidebar(config)
 		SearchStroke.Parent = SearchFrame
 
 		local SearchBox = Instance.new("TextBox")
-		SearchBox.Size = UDim2.new(1, -16, 1, 0)
+		SearchBox.Size = UDim2.new(1, -10, 1, 0)
 		SearchBox.Position = UDim2.new(0, 8, 0, 0)
 		SearchBox.BackgroundTransparency = 1
 		SearchBox.Font = Enum.Font.Gotham
@@ -4307,27 +4305,59 @@ function Response:AddPlayerSidebar(config)
 		SearchBox.TextColor3 = Color3.fromRGB(255, 255, 255)
 		SearchBox.TextSize = 11
 		SearchBox.TextXAlignment = Enum.TextXAlignment.Left
+		SearchBox.TextTruncate = Enum.TextTruncate.AtEnd
 		SearchBox.ClipsDescendants = true
 		SearchBox.Parent = SearchFrame
 
-		local PlayerList = Instance.new("ScrollingFrame")
-		PlayerList.Size = UDim2.new(1, -16, 1, -85)
-		PlayerList.Position = UDim2.new(0, 12, 0, 80)
-		PlayerList.BackgroundTransparency = 1
-		PlayerList.BorderSizePixel = 0
-		PlayerList.ScrollBarThickness = 2
-		PlayerList.ScrollBarImageColor3 = Color3.fromRGB(60, 60, 65)
-		PlayerList.AutomaticCanvasSize = Enum.AutomaticSize.Y
-		PlayerList.CanvasSize = UDim2.new(0, 0, 0, 0)
-		PlayerList.ClipsDescendants = true
-		PlayerList.Parent = InnerContent
+		local PlayerListFrame = Instance.new("ScrollingFrame")
+		PlayerListFrame.Size = UDim2.new(1, -16, 1, -85)
+		PlayerListFrame.Position = UDim2.new(0, 12, 0, 80)
+		PlayerListFrame.BackgroundTransparency = 1
+		PlayerListFrame.BorderSizePixel = 0
+		PlayerListFrame.ScrollBarThickness = 2
+		PlayerListFrame.ScrollBarImageColor3 = Color3.fromRGB(60, 60, 65)
+		PlayerListFrame.AutomaticCanvasSize = Enum.AutomaticSize.Y
+		PlayerListFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
+		PlayerListFrame.Parent = SidebarContainer
 
 		local ListLayout = Instance.new("UIListLayout")
 		ListLayout.SortOrder = Enum.SortOrder.Name
 		ListLayout.Padding = UDim.new(0, 4)
-		ListLayout.Parent = PlayerList
+		ListLayout.Parent = PlayerListFrame
 
 		local playerCards = {}
+
+		-- Handling Smooth Minimize / Maximize UI Logic Transitions
+		MinimizeButton.MouseButton1Click:Connect(function()
+			isMinimized = not isMinimized
+			
+			local changeWidth = isMinimized and -SidebarWidth or SidebarWidth
+			local changePos = isMinimized and (SidebarWidth / 2) or (-SidebarWidth / 2)
+			local shiftChildren = isMinimized and -SidebarWidth or SidebarWidth
+			
+			Airflow:CreateAnimation(WindowFrame, 0.4, Enum.EasingStyle.Quint, {
+				Size = WindowFrame.Size + UDim2.new(0, changeWidth, 0, 0),
+				Position = WindowFrame.Position + UDim2.new(0, changePos, 0, 0)
+			})
+			
+			Airflow:CreateAnimation(SidebarContainer, 0.4, Enum.EasingStyle.Quint, {
+				Size = isMinimized and UDim2.new(0, 0, 1, 0) or UDim2.new(0, SidebarWidth, 1, 0)
+			})
+			
+			Airflow:CreateAnimation(MinimizeButton, 0.4, Enum.EasingStyle.Quint, {
+				Position = isMinimized and UDim2.new(0, 5, 0, 10) or UDim2.new(0, SidebarWidth - 25, 0, 10)
+			})
+			
+			MinimizeButton.Text = isMinimized and "›" or "‹"
+			
+			for _, child in ipairs(WindowFrame:GetChildren()) do
+				if child:IsA("GuiObject") and child ~= SidebarContainer and child ~= MinimizeButton then
+					Airflow:CreateAnimation(child, 0.4, Enum.EasingStyle.Quint, {
+						Position = child.Position + UDim2.new(0, shiftChildren, 0, 0)
+					})
+				end
+			end
+		end)
 
 		local function setVisualCardActive(p, state)
 			local cardData = playerCards[p]
@@ -4364,7 +4394,7 @@ function Response:AddPlayerSidebar(config)
 			card.Text = ""
 			card.AutoButtonColor = false
 			card.ClipsDescendants = true
-			card.Parent = PlayerList
+			card.Parent = PlayerListFrame
 			
 			local CardCorner = Instance.new("UICorner")
 			CardCorner.CornerRadius = UDim.new(0, 4)
@@ -4393,16 +4423,17 @@ function Response:AddPlayerSidebar(config)
 				if ok then pAvatar.Image = img end
 			end)
 
+			-- Name Field displaying both Username and DisplayName without overflow issues
 			local uName = Instance.new("TextLabel")
 			uName.Size = UDim2.new(1, -42, 1, 0)
 			uName.Position = UDim2.new(0, 34, 0, 0)
 			uName.BackgroundTransparency = 1
 			uName.Font = Enum.Font.Gotham
-			uName.Text = p.DisplayName
+			uName.Text = p.DisplayName .. " (@" .. p.Name .. ")"
 			uName.TextColor3 = Color3.fromRGB(220, 220, 225)
 			uName.TextSize = 11
 			uName.TextXAlignment = Enum.TextXAlignment.Left
-			uName.ClipsDescendants = true
+			uName.TextTruncate = Enum.TextTruncate.AtEnd
 			uName.Parent = card
 
 			card.MouseEnter:Connect(function()
@@ -4442,25 +4473,6 @@ function Response:AddPlayerSidebar(config)
 				else
 					data.Frame.Visible = false
 				end
-			end
-		end)
-
-		MinimizeBtn.MouseButton1Click:Connect(function()
-			SidebarResponse.IsMinimized = not SidebarResponse.IsMinimized
-			if SidebarResponse.IsMinimized then
-				MinimizeBtn.Text = "[ + ]"
-				InnerContent.Visible = false
-				Airflow:CreateAnimation(SidebarContainer, 0.25, Enum.EasingStyle.Quint, {Size = UDim2.new(0, 40, 1, 0)})
-				Airflow:CreateAnimation(VerticalDivider, 0.25, Enum.EasingStyle.Quint, {Position = UDim2.new(0, 39, 0, 0)})
-				MinimizeBtn.Position = UDim2.new(0, 5, 0, 5)
-			else
-				MinimizeBtn.Text = "[ - ]"
-				Airflow:CreateAnimation(SidebarContainer, 0.25, Enum.EasingStyle.Quint, {Size = UDim2.new(0, SidebarWidth, 1, 0)})
-				Airflow:CreateAnimation(VerticalDivider, 0.25, Enum.EasingStyle.Quint, {Position = UDim2.new(1, -1, 0, 0)})
-				MinimizeBtn.Position = UDim2.new(1, -35, 0, 5)
-				task.delay(0.15, function()
-					if not SidebarResponse.IsMinimized then InnerContent.Visible = true end
-				end)
 			end
 		end)
 
