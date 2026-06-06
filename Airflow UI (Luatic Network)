@@ -4210,6 +4210,218 @@ function Airflow:Init(config)
 		return process;
 	end;
 
+function Response:AddPlayerSidebar(config)
+		config = config or {}
+		config.Title = config.Title or "Players"
+
+		local SidebarResponse = {
+			SelectedPlayer = nil,
+			OnSelected = nil
+		}
+
+		local SidebarWidth = 180
+		local Players = game:GetService("Players")
+
+		Main.Size = Main.Size + UDim2.new(0, SidebarWidth, 0, 0)
+		Main.Position = Main.Position + UDim2.new(0, -SidebarWidth / 2, 0, 0)
+
+		for _, child in ipairs(Main:GetChildren()) do
+			if child:IsA("GuiObject") then
+				child.Position = child.Position + UDim2.new(0, SidebarWidth, 0, 0)
+			end
+		end
+
+		local SidebarContainer = Instance.new("Frame")
+		SidebarContainer.Name = "SidebarContainer"
+		SidebarContainer.Position = UDim2.new(0, 0, 0, 0)
+		SidebarContainer.Size = UDim2.new(0, SidebarWidth, 1, 0)
+		SidebarContainer.BackgroundTransparency = 1
+		SidebarContainer.Parent = Main
+
+		local VerticalDivider = Instance.new("Frame")
+		VerticalDivider.Name = "VerticalDivider"
+		VerticalDivider.Position = UDim2.new(1, -1, 0, 0)
+		VerticalDivider.Size = UDim2.new(0, 1, 1, 0)
+		VerticalDivider.BackgroundColor3 = Color3.fromRGB(45, 45, 50)
+		VerticalDivider.BorderSizePixel = 0
+		VerticalDivider.BackgroundTransparency = 0.4
+		VerticalDivider.Parent = SidebarContainer
+
+		local HeaderText = Instance.new("TextLabel")
+		HeaderText.Size = UDim2.new(1, -20, 0, 35)
+		HeaderText.Position = UDim2.new(0, 12, 0, 5)
+		HeaderText.BackgroundTransparency = 1
+		HeaderText.Font = Enum.Font.GothamMedium
+		HeaderText.Text = config.Title
+		HeaderText.TextColor3 = Color3.fromRGB(255, 255, 255)
+		HeaderText.TextSize = 13
+		HeaderText.TextXAlignment = Enum.TextXAlignment.Left
+		HeaderText.Parent = SidebarContainer
+
+		local SearchFrame = Instance.new("Frame")
+		SearchFrame.Size = UDim2.new(1, -24, 0, 28)
+		SearchFrame.Position = UDim2.new(0, 12, 0, 42)
+		SearchFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
+		SearchFrame.BackgroundTransparency = 0.3
+		SearchFrame.Parent = SidebarContainer
+		
+		local SearchCorner = Instance.new("UICorner")
+		SearchCorner.CornerRadius = UDim.new(0, 4)
+		SearchCorner.Parent = SearchFrame
+		
+		local SearchStroke = Instance.new("UIStroke")
+		SearchStroke.Color = Color3.fromRGB(50, 50, 55)
+		SearchStroke.Transparency = 0.5
+		SearchStroke.Parent = SearchFrame
+
+		local SearchBox = Instance.new("TextBox")
+		SearchBox.Size = UDim2.new(1, -10, 1, 0)
+		SearchBox.Position = UDim2.new(0, 8, 0, 0)
+		SearchBox.BackgroundTransparency = 1
+		SearchBox.Font = Enum.Font.Gotham
+		SearchBox.PlaceholderText = "Search player..."
+		SearchBox.PlaceholderColor3 = Color3.fromRGB(100, 100, 110)
+		SearchBox.Text = ""
+		SearchBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+		SearchBox.TextSize = 11
+		SearchBox.TextXAlignment = Enum.TextXAlignment.Left
+		SearchBox.Parent = SearchFrame
+
+		local PlayerList = Instance.new("ScrollingFrame")
+		PlayerList.Size = UDim2.new(1, -16, 1, -85)
+		PlayerList.Position = UDim2.new(0, 12, 0, 80)
+		PlayerList.BackgroundTransparency = 1
+		PlayerList.BorderSizePixel = 0
+		PlayerList.ScrollBarThickness = 2
+		PlayerList.ScrollBarImageColor3 = Color3.fromRGB(60, 60, 65)
+		PlayerList.AutomaticCanvasSize = Enum.AutomaticSize.Y
+		PlayerList.CanvasSize = UDim2.new(0, 0, 0, 0)
+		PlayerList.Parent = SidebarContainer
+
+		local ListLayout = Instance.new("UIListLayout")
+		ListLayout.SortOrder = Enum.SortOrder.Name
+		ListLayout.Padding = UDim.new(0, 4)
+		ListLayout.Parent = PlayerList
+
+		local playerCards = {}
+
+		local function setVisualCardActive(p, state)
+			local cardData = playerCards[p]
+			if not cardData then return end
+			if state then
+				Airflow:CreateAnimation(cardData.Frame, 0.2, Enum.EasingStyle.Quint, {BackgroundColor3 = Color3.fromRGB(35, 35, 42)})
+				Airflow:CreateAnimation(cardData.Stroke, 0.2, Enum.EasingStyle.Quint, {Color = Color3.fromRGB(255, 255, 255), Transparency = 0.3})
+			else
+				Airflow:CreateAnimation(cardData.Frame, 0.2, Enum.EasingStyle.Quint, {BackgroundColor3 = Color3.fromRGB(22, 22, 26)})
+				Airflow:CreateAnimation(cardData.Stroke, 0.2, Enum.EasingStyle.Quint, {Color = Color3.fromRGB(45, 45, 50), Transparency = 0.6})
+			end
+		end
+
+		local function selectPlayerProfile(p)
+			if SidebarResponse.SelectedPlayer and SidebarResponse.SelectedPlayer ~= p then
+				setVisualCardActive(SidebarResponse.SelectedPlayer, false)
+			end
+			SidebarResponse.SelectedPlayer = p
+			if p then
+				setVisualCardActive(p, true)
+				if SidebarResponse.OnSelected then
+					SidebarResponse.OnSelected(p)
+				end
+			end
+		end
+
+		local function addPlayerCard(p)
+			if playerCards[p] then return end
+
+			local card = Instance.new("TextButton")
+			card.Name = p.Name
+			card.Size = UDim2.new(1, -6, 0, 32)
+			card.BackgroundColor3 = Color3.fromRGB(22, 22, 26)
+			card.Text = ""
+			card.AutoButtonColor = false
+			card.Parent = PlayerList
+			
+			local CardCorner = Instance.new("UICorner")
+			CardCorner.CornerRadius = UDim.new(0, 4)
+			CardCorner.Parent = card
+
+			local cStroke = Instance.new("UIStroke")
+			cStroke.Color = Color3.fromRGB(45, 45, 50)
+			cStroke.Transparency = 0.6
+			cStroke.Parent = card
+
+			local pAvatar = Instance.new("ImageLabel")
+			pAvatar.Size = UDim2.new(0, 22, 0, 22)
+			pAvatar.Position = UDim2.new(0, 6, 0.5, -11)
+			pAvatar.BackgroundColor3 = Color3.fromRGB(15, 15, 18)
+			pAvatar.ScaleType = Enum.ScaleType.Crop
+			pAvatar.Parent = card
+			
+			local AvatarCorner = Instance.new("UICorner")
+			AvatarCorner.CornerRadius = UDim.new(1, 0)
+			AvatarCorner.Parent = pAvatar
+
+			task.spawn(function()
+				local ok, img = pcall(function() 
+					return Players:GetUserThumbnailAsync(p.UserId, Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size48x48) 
+				end)
+				if ok then pAvatar.Image = img end
+			end)
+
+			local uName = Instance.new("TextLabel")
+			uName.Size = UDim2.new(1, -38, 1, 0)
+			uName.Position = UDim2.new(0, 34, 0, 0)
+			uName.BackgroundTransparency = 1
+			uName.Font = Enum.Font.Gotham
+			uName.Text = p.DisplayName
+			uName.TextColor3 = Color3.fromRGB(220, 220, 225)
+			uName.TextSize = 11
+			uName.TextXAlignment = Enum.TextXAlignment.Left
+			uName.Parent = card
+
+			card.MouseEnter:Connect(function()
+				if SidebarResponse.SelectedPlayer ~= p then
+					Airflow:CreateAnimation(card, 0.15, Enum.EasingStyle.Quint, {BackgroundColor3 = Color3.fromRGB(28, 28, 34)})
+				end
+			end)
+
+			card.MouseLeave:Connect(function()
+				if SidebarResponse.SelectedPlayer ~= p then
+					Airflow:CreateAnimation(card, 0.15, Enum.EasingStyle.Quint, {BackgroundColor3 = Color3.fromRGB(22, 22, 26)})
+				end
+			end)
+
+			card.MouseButton1Click:Connect(function()
+				selectPlayerProfile(p)
+			end)
+
+			playerCards[p] = {Frame = card, Stroke = cStroke}
+		end
+
+		for _, p in ipairs(Players:GetPlayers()) do addPlayerCard(p) end
+		Players.PlayerAdded:Connect(addPlayerCard)
+		Players.PlayerRemoving:Connect(function(p)
+			if playerCards[p] then
+				playerCards[p].Frame:Destroy()
+				playerCards[p] = nil
+			end
+			if SidebarResponse.SelectedPlayer == p then SidebarResponse.SelectedPlayer = nil end
+		end)
+
+		SearchBox:GetPropertyChangedSignal("Text"):Connect(function()
+			local query = string.lower(SearchBox.Text)
+			for p, data in pairs(playerCards) do
+				if query == "" or string.find(string.lower(p.Name), query) or string.find(string.lower(p.DisplayName), query) then
+					data.Frame.Visible = true
+				else
+					data.Frame.Visible = false
+				end
+			end
+		end)
+
+		return SidebarResponse
+	end
+
 	function Response:DrawTab(config) : Tab
 		config = config or {};
 		config.Name = config.Name or "Tab";
@@ -4968,218 +5180,6 @@ function Airflow:Init(config)
 	ToggleWindow(true);
 
 	Response:Update();
-
-	function Response:AddPlayerSidebar(config)
-		config = config or {}
-		config.Title = config.Title or "Players"
-
-		local SidebarResponse = {
-			SelectedPlayer = nil,
-			OnSelected = nil
-		}
-
-		local TargetParent = MainFrame or Main or WindowFrame or UI or Hub
-		if not TargetParent then
-			for _, child in ipairs(AirflowUI:GetChildren()) do
-				if child:IsA("Frame") and child.Size.X.Offset > 100 then
-					TargetParent = child
-					break
-				end
-			end
-		end
-
-		if TargetParent then
-			TargetParent.ClipsDescendants = false
-		else
-			return SidebarResponse
-		end
-
-		local Players = game:GetService("Players")
-		local TweenService = game:GetService("TweenService")
-
-		local function animate(obj, props)
-			TweenService:Create(obj, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), props):Play()
-		end
-		
-		local Sidebar = Instance.new("Frame")
-		Sidebar.Name = "PlayerSidebar_" .. Airflow:RandomString()
-		Sidebar.Parent = TargetParent
-		Sidebar.AnchorPoint = Vector2.new(1, 0)
-		Sidebar.Position = UDim2.new(0, -10, 0, 0) 
-		Sidebar.Size = UDim2.new(0, 200, 1, 0)
-		Sidebar.BackgroundColor3 = Color3.fromRGB(12, 12, 12)
-		Sidebar.BackgroundTransparency = 0.2
-		Sidebar.BorderSizePixel = 0
-		Sidebar.ClipsDescendants = true
-		Sidebar.Visible = true
-		
-		local SidebarCorner = Instance.new("UICorner")
-		SidebarCorner.CornerRadius = UDim.new(0, 4)
-		SidebarCorner.Parent = Sidebar
-		
-		local SidebarStroke = Instance.new("UIStroke")
-		SidebarStroke.Transparency = 0.57
-		SidebarStroke.Color = Color3.fromRGB(66, 66, 66)
-		SidebarStroke.Parent = Sidebar
-
-		pcall(function()
-			Airflow:Blur(Sidebar)
-		end)
-
-		local HeaderText = Instance.new("TextLabel")
-		HeaderText.Size = UDim2.new(1, -20, 0, 30)
-		HeaderText.Position = UDim2.new(0, 10, 0, 5)
-		HeaderText.BackgroundTransparency = 1
-		HeaderText.Font = Enum.Font.GothamMedium
-		HeaderText.Text = config.Title
-		HeaderText.TextColor3 = Color3.fromRGB(255, 255, 255)
-		HeaderText.TextSize = 14
-		HeaderText.TextXAlignment = Enum.TextXAlignment.Left
-		HeaderText.Parent = Sidebar
-
-		local SearchFrame = Instance.new("Frame")
-		SearchFrame.Size = UDim2.new(1, -20, 0, 30)
-		SearchFrame.Position = UDim2.new(0, 10, 0, 40)
-		SearchFrame.BackgroundColor3 = Color3.fromRGB(24, 24, 24)
-		SearchFrame.BackgroundTransparency = 0.2
-		SearchFrame.Parent = Sidebar
-		Instance.new("UICorner", SearchFrame).CornerRadius = UDim.new(0, 4)
-		local SearchStroke = Instance.new("UIStroke", SearchFrame)
-		SearchStroke.Color = Color3.fromRGB(66, 66, 66)
-		SearchStroke.Transparency = 0.6
-
-		local SearchBox = Instance.new("TextBox")
-		SearchBox.Size = UDim2.new(1, -10, 1, 0)
-		SearchBox.Position = UDim2.new(0, 5, 0, 0)
-		SearchBox.BackgroundTransparency = 1
-		SearchBox.Font = Enum.Font.Gotham
-		SearchBox.PlaceholderText = "Search..."
-		SearchBox.Text = ""
-		SearchBox.TextColor3 = Color3.fromRGB(255, 255, 255)
-		SearchBox.TextSize = 12
-		SearchBox.TextXAlignment = Enum.TextXAlignment.Left
-		SearchBox.Parent = SearchFrame
-
-		local PlayerList = Instance.new("ScrollingFrame")
-		PlayerList.Size = UDim2.new(1, -20, 1, -85)
-		PlayerList.Position = UDim2.new(0, 10, 0, 80)
-		PlayerList.BackgroundTransparency = 1
-		PlayerList.BorderSizePixel = 0
-		PlayerList.ScrollBarThickness = 2
-		PlayerList.ScrollBarImageColor3 = Color3.fromRGB(66, 66, 66)
-		PlayerList.AutomaticCanvasSize = Enum.AutomaticSize.Y
-		PlayerList.CanvasSize = UDim2.new(0, 0, 0, 0)
-		PlayerList.Parent = Sidebar
-
-		local ListLayout = Instance.new("UIListLayout")
-		ListLayout.SortOrder = Enum.SortOrder.Name
-		ListLayout.Padding = UDim.new(0, 5)
-		ListLayout.Parent = PlayerList
-
-		local playerCards = {}
-
-		local function setVisualCardActive(p, state)
-			local cardData = playerCards[p]
-			if not cardData then return end
-			if state then
-				animate(cardData.Frame, {BackgroundColor3 = Color3.fromRGB(45, 45, 45)})
-				animate(cardData.Stroke, {Color = config.Highlight or Color3.fromRGB(255, 255, 255), Transparency = 0.2})
-			else
-				animate(cardData.Frame, {BackgroundColor3 = Color3.fromRGB(18, 18, 18)})
-				animate(cardData.Stroke, {Color = Color3.fromRGB(66, 66, 66), Transparency = 0.6})
-			end
-		end
-
-		local function selectPlayerProfile(p)
-			if SidebarResponse.SelectedPlayer and SidebarResponse.SelectedPlayer ~= p then
-				setVisualCardActive(SidebarResponse.SelectedPlayer, false)
-			end
-			SidebarResponse.SelectedPlayer = p
-			if p then
-				setVisualCardActive(p, true)
-				if SidebarResponse.OnSelected then
-					SidebarResponse.OnSelected(p)
-				end
-			end
-		end
-
-		local function addPlayerCard(p)
-			if playerCards[p] then return end
-
-			local card = Instance.new("TextButton")
-			card.Name = p.Name
-			card.Size = UDim2.new(1, 0, 0, 35)
-			card.BackgroundColor3 = Color3.fromRGB(18, 18, 18)
-			card.Text = ""
-			card.AutoButtonColor = false
-			card.Parent = PlayerList
-			Instance.new("UICorner", card).CornerRadius = UDim.new(0, 4)
-
-			local cStroke = Instance.new("UIStroke")
-			cStroke.Color = Color3.fromRGB(66, 66, 66)
-			cStroke.Transparency = 0.6
-			cStroke.Parent = card
-
-			local pAvatar = Instance.new("ImageLabel")
-			pAvatar.Size = UDim2.new(0, 25, 0, 25)
-			pAvatar.Position = UDim2.new(0, 5, 0.5, -12.5)
-			pAvatar.BackgroundColor3 = Color3.fromRGB(12, 12, 12)
-			pAvatar.ScaleType = Enum.ScaleType.Crop
-			pAvatar.Parent = card
-			Instance.new("UICorner", pAvatar).CornerRadius = UDim.new(1, 0)
-
-			task.spawn(function()
-				local ok, img = pcall(function() 
-					return Players:GetUserThumbnailAsync(p.UserId, Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size48x48) 
-				end)
-				if ok then pAvatar.Image = img end
-			end)
-
-			local uName = Instance.new("TextLabel")
-			uName.Size = UDim2.new(1, -40, 1, 0)
-			uName.Position = UDim2.new(0, 35, 0, 0)
-			uName.BackgroundTransparency = 1
-			uName.Font = Enum.Font.GothamMedium
-			uName.Text = p.DisplayName
-			uName.TextColor3 = Color3.fromRGB(200, 200, 200)
-			uName.TextSize = 12
-			uName.TextXAlignment = Enum.TextXAlignment.Left
-			uName.Parent = card
-
-			card.MouseButton1Click:Connect(function()
-				selectPlayerProfile(p)
-			end)
-
-			playerCards[p] = {Frame = card, Stroke = cStroke}
-		end
-
-		for _, p in ipairs(Players:GetPlayers()) do addPlayerCard(p) end
-		Players.PlayerAdded:Connect(addPlayerCard)
-		Players.PlayerRemoving:Connect(function(p)
-			if playerCards[p] then
-				playerCards[p].Frame:Destroy()
-				playerCards[p] = nil
-			end
-			if SidebarResponse.SelectedPlayer == p then SidebarResponse.SelectedPlayer = nil end
-		end)
-
-		SearchBox:GetPropertyChangedSignal("Text"):Connect(function()
-			local query = string.lower(SearchBox.Text)
-			for p, data in pairs(playerCards) do
-				if query == "" or string.find(string.lower(p.Name), query) or string.find(string.lower(p.DisplayName), query) then
-					data.Frame.Visible = true
-				else
-					data.Frame.Visible = false
-				end
-			end
-		end)
-
-		function SidebarResponse:Visible(state)
-			Sidebar.Visible = state
-		end
-
-		return SidebarResponse
-	end
 
 	return Response;
 end;
