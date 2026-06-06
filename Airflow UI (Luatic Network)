@@ -4687,11 +4687,16 @@ function Response:AddPlayerSidebar(config)
 
 				SearchBox.Text = ""
 				sortPlayerCards()
+			end
+		end)
 
-				task.defer(function()
-					SearchBox:CaptureFocus()
-					SearchBox.Text = ""
-				end)
+		Players.PlayerRemoving:Connect(function(p)
+			if playerCards[p] then
+				playerCards[p].Frame:Destroy()
+				playerCards[p] = nil
+			end
+			if SidebarResponse.SelectedPlayer == p then 
+				selectPlayerProfile(nil)
 			end
 		end)
 
