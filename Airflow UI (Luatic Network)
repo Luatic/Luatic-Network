@@ -4322,90 +4322,6 @@ function Response:AddPlayerSidebar(config)
 		SearchBox.TextXAlignment = Enum.TextXAlignment.Left
 		SearchBox.Parent = SearchBoxBlock
 
-		-- =========================================================================
-		-- LIKELY MATCH (CARD STYLE + CLICK SELECTION + DIVIDER)
-		-- =========================================================================
-		local SuggestedHeader = Instance.new("TextLabel")
-		SuggestedHeader.Size = UDim2.new(1, -24, 0, 12)
-		SuggestedHeader.Position = UDim2.new(0, 12, 0, 85)
-		SuggestedHeader.BackgroundTransparency = 1
-		SuggestedHeader.Font = Enum.Font.GothamBold
-		SuggestedHeader.Text = "LIKELY MATCH"
-		SuggestedHeader.TextColor3 = Color3.fromRGB(155, 155, 162)
-		SuggestedHeader.TextSize = 9
-		SuggestedHeader.TextXAlignment = Enum.TextXAlignment.Left
-		SuggestedHeader.Parent = SidebarContainer
-
-		local SuggestedCard = Instance.new("TextButton")
-		SuggestedCard.Name = "SuggestedPlayerCard"
-		SuggestedCard.Size = UDim2.new(1, -24, 0, 45)
-		SuggestedCard.Position = UDim2.new(0, 12, 0, 102)
-		SuggestedCard.BackgroundColor3 = Color3.fromRGB(91, 91, 91)
-		SuggestedCard.BackgroundTransparency = 0.8
-		SuggestedCard.Text = ""
-		SuggestedCard.AutoButtonColor = false
-		SuggestedCard.ClipsDescendants = true
-		SuggestedCard.Visible = false -- Hidden until user starts searching
-		SuggestedCard.Parent = SidebarContainer
-		
-		local SuggestedCorner = Instance.new("UICorner")
-		SuggestedCorner.CornerRadius = UDim.new(0, 4)
-		SuggestedCorner.Parent = SuggestedCard
-
-		local SuggestedAvatar = Instance.new("ImageLabel")
-		SuggestedAvatar.Size = UDim2.new(0, 28, 0, 28)
-		SuggestedAvatar.Position = UDim2.new(0, 6, 0.5, -14)
-		SuggestedAvatar.BackgroundColor3 = Color3.fromRGB(15, 15, 18)
-		SuggestedAvatar.BackgroundTransparency = 0.5
-		SuggestedAvatar.ScaleType = Enum.ScaleType.Crop
-		SuggestedAvatar.Parent = SuggestedCard
-		
-		local SuggestedAvCorner = Instance.new("UICorner")
-		SuggestedAvCorner.CornerRadius = UDim.new(1, 0)
-		SuggestedAvCorner.Parent = SuggestedAvatar
-
-		local SuggestedUName = Instance.new("TextLabel")
-		SuggestedUName.Size = UDim2.new(1, -44, 0, 18)
-		SuggestedUName.Position = UDim2.new(0, 40, 0, 5)
-		SuggestedUName.BackgroundTransparency = 1
-		SuggestedUName.Font = Enum.Font.GothamMedium
-		SuggestedUName.Text = "@"
-		SuggestedUName.TextColor3 = Color3.fromRGB(255, 255, 255)
-		SuggestedUName.TextSize = 11
-		SuggestedUName.TextXAlignment = Enum.TextXAlignment.Left
-		SuggestedUName.TextTruncate = Enum.TextTruncate.AtEnd
-		SuggestedUName.Parent = SuggestedCard
-
-		local SuggestedDName = Instance.new("TextLabel")
-		SuggestedDName.Size = UDim2.new(1, -44, 0, 16)
-		SuggestedDName.Position = UDim2.new(0, 40, 0, 22)
-		SuggestedDName.BackgroundTransparency = 1
-		SuggestedDName.Font = Enum.Font.Gotham
-		SuggestedDName.Text = ""
-		SuggestedDName.TextColor3 = Color3.fromRGB(180, 180, 185)
-		SuggestedDName.TextSize = 10
-		SuggestedDName.TextXAlignment = Enum.TextXAlignment.Left
-		SuggestedDName.TextTruncate = Enum.TextTruncate.AtEnd
-		SuggestedDName.Parent = SuggestedCard
-
-		-- Horizontal border line below the likely match area
-		local TopSectionDivider = Instance.new("Frame")
-		TopSectionDivider.Size = UDim2.new(1, -24, 0, 1)
-		TopSectionDivider.Position = UDim2.new(0, 12, 0, 157)
-		TopSectionDivider.BackgroundColor3 = Color3.fromRGB(45, 45, 50)
-		TopSectionDivider.BackgroundTransparency = 0.4
-		TopSectionDivider.BorderSizePixel = 0
-		TopSectionDivider.Parent = SidebarContainer
-
-		local currentSuggestedPlayer = nil
-		SuggestedCard.MouseButton1Click:Connect(function()
-			if currentSuggestedPlayer then
-				selectPlayerProfile(currentSuggestedPlayer)
-			end
-		end)
-		Airflow:Hover(SuggestedCard)
-		-- =========================================================================
-
 		-- 4. Player Cards Scrolling Container
 		local PlayerListFrame = Instance.new("ScrollingFrame")
 		PlayerListFrame.Name = Airflow:RandomString()
@@ -4413,8 +4329,8 @@ function Response:AddPlayerSidebar(config)
 		-- =========================================================================
 		-- SIZING CALCULATIONS & CURRENT TARGET CARD FRAME WITH TOP DIVIDER
 		-- =========================================================================
-		PlayerListFrame.Size = UDim2.new(1, -16, 1, -235) -- Adjusted height limits
-		PlayerListFrame.Position = UDim2.new(0, 12, 0, 168) -- Shifted start below top divider line
+		PlayerListFrame.Size = UDim2.new(1, -16, 1, -168) -- Maximized scrollable height window
+		PlayerListFrame.Position = UDim2.new(0, 12, 0, 85) -- Moved back up directly below search box
 		PlayerListFrame.BackgroundTransparency = 1
 		PlayerListFrame.BorderSizePixel = 0
 		PlayerListFrame.ScrollBarThickness = 2
@@ -4662,39 +4578,15 @@ function Response:AddPlayerSidebar(config)
 			if SidebarResponse.SelectedPlayer == p then SidebarResponse.SelectedPlayer = nil end
 		end)
 
-		-- Query matching supporting dual Username and DisplayName lookups + Likely Match tracking
+		-- Query matching supporting dual Username and DisplayName lookups
 		SearchBox:GetPropertyChangedSignal("Text"):Connect(function()
 			local query = string.lower(SearchBox.Text)
-			local firstMatch = nil
-			
 			for p, data in pairs(playerCards) do
 				if query == "" or string.find(string.lower(p.Name), query) or string.find(string.lower(p.DisplayName), query) then
 					data.Frame.Visible = true
-					if query ~= "" and not firstMatch then
-						firstMatch = p -- Target the closest alphabetic/list occurrence matching input
-					end
 				else
 					data.Frame.Visible = false
 				end
-			end
-			
-			-- Render or clear the closest structural candidate match card
-			if firstMatch then
-				currentSuggestedPlayer = firstMatch
-				SuggestedUName.Text = "@" .. firstMatch.Name
-				SuggestedDName.Text = firstMatch.DisplayName
-				SuggestedCard.Visible = true
-				
-				task.spawn(function()
-					local ok, img = pcall(function() 
-						return Players:GetUserThumbnailAsync(firstMatch.UserId, Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size48x48) 
-					end)
-					if ok then SuggestedAvatar.Image = img end
-				end)
-			else
-				currentSuggestedPlayer = nil
-				SuggestedCard.Visible = false
-				SuggestedAvatar.Image = ""
 			end
 		end)
 
