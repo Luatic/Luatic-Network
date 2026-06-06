@@ -4969,7 +4969,7 @@ function Airflow:Init(config)
 
 	Response:Update();
 
-function Response:AddPlayerSidebar(config)
+	function Response:AddPlayerSidebar(config)
 		config = config or {}
 		config.Title = config.Title or "Players"
 
@@ -4978,34 +4978,54 @@ function Response:AddPlayerSidebar(config)
 			OnSelected = nil
 		}
 
+		local TargetParent = MainFrame or Main or WindowFrame or UI or Hub
+		if not TargetParent then
+			for _, child in ipairs(AirflowUI:GetChildren()) do
+				if child:IsA("Frame") and child.Size.X.Offset > 100 then
+					TargetParent = child
+					break
+				end
+			end
+		end
+
+		if TargetParent then
+			TargetParent.ClipsDescendants = false
+		else
+			return SidebarResponse
+		end
+
 		local Players = game:GetService("Players")
+		local TweenService = game:GetService("TweenService")
+
+		local function animate(obj, props)
+			TweenService:Create(obj, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), props):Play()
+		end
 		
-		-- 1. Create the Docked Sidebar Frame
 		local Sidebar = Instance.new("Frame")
 		Sidebar.Name = "PlayerSidebar_" .. Airflow:RandomString()
-		Sidebar.Parent = MainFrame -- Attaches directly to the main UI chassis
+		Sidebar.Parent = TargetParent
 		Sidebar.AnchorPoint = Vector2.new(1, 0)
 		Sidebar.Position = UDim2.new(0, -10, 0, 0) 
 		Sidebar.Size = UDim2.new(0, 200, 1, 0)
-		
-		-- Match EXACT Main UI palette
 		Sidebar.BackgroundColor3 = Color3.fromRGB(12, 12, 12)
-		Sidebar.BackgroundTransparency = 0.200 
+		Sidebar.BackgroundTransparency = 0.2
 		Sidebar.BorderSizePixel = 0
 		Sidebar.ClipsDescendants = true
+		Sidebar.Visible = true
 		
 		local SidebarCorner = Instance.new("UICorner")
 		SidebarCorner.CornerRadius = UDim.new(0, 4)
 		SidebarCorner.Parent = Sidebar
 		
 		local SidebarStroke = Instance.new("UIStroke")
-		SidebarStroke.Transparency = 0.570
+		SidebarStroke.Transparency = 0.57
 		SidebarStroke.Color = Color3.fromRGB(66, 66, 66)
 		SidebarStroke.Parent = Sidebar
 
-		Airflow:Blur(Sidebar)
+		pcall(function()
+			Airflow:Blur(Sidebar)
+		end)
 
-		-- 2. Header
 		local HeaderText = Instance.new("TextLabel")
 		HeaderText.Size = UDim2.new(1, -20, 0, 30)
 		HeaderText.Position = UDim2.new(0, 10, 0, 5)
@@ -5017,7 +5037,6 @@ function Response:AddPlayerSidebar(config)
 		HeaderText.TextXAlignment = Enum.TextXAlignment.Left
 		HeaderText.Parent = Sidebar
 
-		-- 3. Native Airflow-Themed Search Box
 		local SearchFrame = Instance.new("Frame")
 		SearchFrame.Size = UDim2.new(1, -20, 0, 30)
 		SearchFrame.Position = UDim2.new(0, 10, 0, 40)
@@ -5041,7 +5060,6 @@ function Response:AddPlayerSidebar(config)
 		SearchBox.TextXAlignment = Enum.TextXAlignment.Left
 		SearchBox.Parent = SearchFrame
 
-		-- 4. Scrolling Player List
 		local PlayerList = Instance.new("ScrollingFrame")
 		PlayerList.Size = UDim2.new(1, -20, 1, -85)
 		PlayerList.Position = UDim2.new(0, 10, 0, 80)
@@ -5060,16 +5078,15 @@ function Response:AddPlayerSidebar(config)
 
 		local playerCards = {}
 
-		-- Active Card Highlighting (Themed)
 		local function setVisualCardActive(p, state)
 			local cardData = playerCards[p]
 			if not cardData then return end
 			if state then
-				Airflow:CreateAnimation(cardData.Frame, 0.2, nil, {BackgroundColor3 = Color3.fromRGB(45, 45, 45)})
-				Airflow:CreateAnimation(cardData.Stroke, 0.2, nil, {Color = config.Highlight or Color3.fromRGB(255, 255, 255), Transparency = 0.2})
+				animate(cardData.Frame, {BackgroundColor3 = Color3.fromRGB(45, 45, 45)})
+				animate(cardData.Stroke, {Color = config.Highlight or Color3.fromRGB(255, 255, 255), Transparency = 0.2})
 			else
-				Airflow:CreateAnimation(cardData.Frame, 0.2, nil, {BackgroundColor3 = Color3.fromRGB(18, 18, 18)})
-				Airflow:CreateAnimation(cardData.Stroke, 0.2, nil, {Color = Color3.fromRGB(66, 66, 66), Transparency = 0.6})
+				animate(cardData.Frame, {BackgroundColor3 = Color3.fromRGB(18, 18, 18)})
+				animate(cardData.Stroke, {Color = Color3.fromRGB(66, 66, 66), Transparency = 0.6})
 			end
 		end
 
