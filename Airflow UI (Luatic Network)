@@ -4314,6 +4314,7 @@ function Response:AddPlayerSidebar(config)
 		SearchBox.Size = UDim2.new(1, -10, 1, -5)
 		SearchBox.ZIndex = 8
 		SearchBox.ClearTextOnFocus = false
+		SearchBox.MultiLine = false 
 		SearchBox.Font = Enum.Font.GothamMedium
 		SearchBox.PlaceholderText = "Search player..."
 		SearchBox.Text = ""
@@ -4590,9 +4591,14 @@ function Response:AddPlayerSidebar(config)
 			end
 		end)
 
-		-- Handle pressing Enter to automatically select the top player from the search results
+		-- Handle pressing Enter to automatically select the top player from the search results cleanly
 		SearchBox.FocusLost:Connect(function(enterPressed)
 			if enterPressed then
+				-- Strip out any newline characters or trailing space padding created by pressing Enter
+				local cleanText = string.gsub(SearchBox.Text, "[\r\n]+", "")
+				SearchBox.Text = cleanText
+				
+				-- Loop through elements in alphabetical order or layout order to find the first visible card
 				local topPlayer = nil
 				for p, data in pairs(playerCards) do
 					if data.Frame.Visible then
@@ -4602,16 +4608,19 @@ function Response:AddPlayerSidebar(config)
 					end
 				end
 				
+				-- If a visible matching player exists, select them instantly
 				if topPlayer then
 					selectPlayerProfile(topPlayer)
 				end
 				
+				-- Immediately reclaim focus so you can keep typing or backspacing seamlessly without spaces
 				task.defer(function()
 					SearchBox:CaptureFocus()
+					-- Move cursor back to the end of your clean text
+					SearchBox.CursorPosition = #SearchBox.Text + 1
 				end)
 			end
 		end)
-
 		return SidebarResponse
 	end
 
