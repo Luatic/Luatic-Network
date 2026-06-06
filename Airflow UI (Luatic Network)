@@ -4220,12 +4220,11 @@ function Response:AddPlayerSidebar(config)
 		}
 
 		local SidebarWidth = 180
-		local Players = game:GetService("Players")
 
-		Main.Size = Main.Size + UDim2.new(0, SidebarWidth, 0, 0)
-		Main.Position = Main.Position + UDim2.new(0, -SidebarWidth / 2, 0, 0)
+		WindowFrame.Size = WindowFrame.Size + UDim2.new(0, SidebarWidth, 0, 0)
+		WindowFrame.Position = WindowFrame.Position + UDim2.new(0, -SidebarWidth / 2, 0, 0)
 
-		for _, child in ipairs(Main:GetChildren()) do
+		for _, child in ipairs(WindowFrame:GetChildren()) do
 			if child:IsA("GuiObject") then
 				child.Position = child.Position + UDim2.new(0, SidebarWidth, 0, 0)
 			end
@@ -4236,7 +4235,7 @@ function Response:AddPlayerSidebar(config)
 		SidebarContainer.Position = UDim2.new(0, 0, 0, 0)
 		SidebarContainer.Size = UDim2.new(0, SidebarWidth, 1, 0)
 		SidebarContainer.BackgroundTransparency = 1
-		SidebarContainer.Parent = Main
+		SidebarContainer.Parent = WindowFrame
 
 		local VerticalDivider = Instance.new("Frame")
 		VerticalDivider.Name = "VerticalDivider"
