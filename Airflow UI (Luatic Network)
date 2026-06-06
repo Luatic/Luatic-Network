@@ -4323,70 +4323,87 @@ function Response:AddPlayerSidebar(config)
 		SearchBox.Parent = SearchBoxBlock
 
 		-- =========================================================================
-		-- [INSERT CODE HERE]: LIKELY MATCH (SUGGESTED PANEL)
+		-- LIKELY MATCH (CARD STYLE + CLICK SELECTION + DIVIDER)
 		-- =========================================================================
-		local Suggested = Instance.new("Frame")
-		Suggested.Name = "SuggestedMatch"
-		Suggested.BackgroundColor3 = Color3.fromRGB(36, 35, 35)
-		Suggested.BackgroundTransparency = 0.5
-		Suggested.BorderSizePixel = 0
-		Suggested.Position = UDim2.new(0, 12, 0, 82)
-		Suggested.Size = UDim2.new(1, -24, 0, 55)
-		Suggested.ZIndex = 10
-		Suggested.Parent = SidebarContainer
+		local SuggestedHeader = Instance.new("TextLabel")
+		SuggestedHeader.Size = UDim2.new(1, -24, 0, 12)
+		SuggestedHeader.Position = UDim2.new(0, 12, 0, 85)
+		SuggestedHeader.BackgroundTransparency = 1
+		SuggestedHeader.Font = Enum.Font.GothamBold
+		SuggestedHeader.Text = "LIKELY MATCH"
+		SuggestedHeader.TextColor3 = Color3.fromRGB(155, 155, 162)
+		SuggestedHeader.TextSize = 9
+		SuggestedHeader.TextXAlignment = Enum.TextXAlignment.Left
+		SuggestedHeader.Parent = SidebarContainer
+
+		local SuggestedCard = Instance.new("TextButton")
+		SuggestedCard.Name = "SuggestedPlayerCard"
+		SuggestedCard.Size = UDim2.new(1, -24, 0, 45)
+		SuggestedCard.Position = UDim2.new(0, 12, 0, 102)
+		SuggestedCard.BackgroundColor3 = Color3.fromRGB(91, 91, 91)
+		SuggestedCard.BackgroundTransparency = 0.8
+		SuggestedCard.Text = ""
+		SuggestedCard.AutoButtonColor = false
+		SuggestedCard.ClipsDescendants = true
+		SuggestedCard.Visible = false -- Hidden until user starts searching
+		SuggestedCard.Parent = SidebarContainer
 		
 		local SuggestedCorner = Instance.new("UICorner")
 		SuggestedCorner.CornerRadius = UDim.new(0, 4)
-		SuggestedCorner.Parent = Suggested
-
-		local SuggestedTitle = Instance.new("TextLabel")
-		SuggestedTitle.BackgroundTransparency = 1
-		SuggestedTitle.Text = "LIKELY MATCH"
-		SuggestedTitle.Font = Enum.Font.GothamBold
-		SuggestedTitle.TextSize = 9
-		SuggestedTitle.TextColor3 = Color3.fromRGB(155, 155, 162)
-		SuggestedTitle.TextXAlignment = Enum.TextXAlignment.Left
-		SuggestedTitle.Position = UDim2.new(0, 10, 0, 4)
-		SuggestedTitle.Size = UDim2.new(1, -20, 0, 12)
-		SuggestedTitle.ZIndex = 11
-		SuggestedTitle.Parent = Suggested
+		SuggestedCorner.Parent = SuggestedCard
 
 		local SuggestedAvatar = Instance.new("ImageLabel")
+		SuggestedAvatar.Size = UDim2.new(0, 28, 0, 28)
+		SuggestedAvatar.Position = UDim2.new(0, 6, 0.5, -14)
 		SuggestedAvatar.BackgroundColor3 = Color3.fromRGB(15, 15, 18)
 		SuggestedAvatar.BackgroundTransparency = 0.5
-		SuggestedAvatar.BorderSizePixel = 0
-		SuggestedAvatar.Size = UDim2.new(0, 30, 0, 30)
-		SuggestedAvatar.Position = UDim2.new(0, 10, 0, 18)
 		SuggestedAvatar.ScaleType = Enum.ScaleType.Crop
-		SuggestedAvatar.ZIndex = 11
-		SuggestedAvatar.Parent = Suggested
+		SuggestedAvatar.Parent = SuggestedCard
+		
 		local SuggestedAvCorner = Instance.new("UICorner")
 		SuggestedAvCorner.CornerRadius = UDim.new(1, 0)
 		SuggestedAvCorner.Parent = SuggestedAvatar
 
-		local SuggestedName = Instance.new("TextLabel")
-		SuggestedName.BackgroundTransparency = 1
-		SuggestedName.Text = "No match"
-		SuggestedName.Font = Enum.Font.GothamBold
-		SuggestedName.TextSize = 11
-		SuggestedName.TextColor3 = Color3.fromRGB(238, 238, 242)
-		SuggestedName.TextXAlignment = Enum.TextXAlignment.Left
-		SuggestedName.Position = UDim2.new(0, 48, 0, 16)
-		SuggestedName.Size = UDim2.new(1, -58, 0, 16)
-		SuggestedName.ZIndex = 11
-		SuggestedName.Parent = Suggested
+		local SuggestedUName = Instance.new("TextLabel")
+		SuggestedUName.Size = UDim2.new(1, -44, 0, 18)
+		SuggestedUName.Position = UDim2.new(0, 40, 0, 5)
+		SuggestedUName.BackgroundTransparency = 1
+		SuggestedUName.Font = Enum.Font.GothamMedium
+		SuggestedUName.Text = "@"
+		SuggestedUName.TextColor3 = Color3.fromRGB(255, 255, 255)
+		SuggestedUName.TextSize = 11
+		SuggestedUName.TextXAlignment = Enum.TextXAlignment.Left
+		SuggestedUName.TextTruncate = Enum.TextTruncate.AtEnd
+		SuggestedUName.Parent = SuggestedCard
 
-		local SuggestedDisplay = Instance.new("TextLabel")
-		SuggestedDisplay.BackgroundTransparency = 1
-		SuggestedDisplay.Text = "Keep typing"
-		SuggestedDisplay.Font = Enum.Font.Gotham
-		SuggestedDisplay.TextSize = 10
-		SuggestedDisplay.TextColor3 = Color3.fromRGB(150, 150, 156)
-		SuggestedDisplay.TextXAlignment = Enum.TextXAlignment.Left
-		SuggestedDisplay.Position = UDim2.new(0, 48, 0, 30)
-		SuggestedDisplay.Size = UDim2.new(1, -58, 0, 14)
-		SuggestedDisplay.ZIndex = 11
-		SuggestedDisplay.Parent = Suggested
+		local SuggestedDName = Instance.new("TextLabel")
+		SuggestedDName.Size = UDim2.new(1, -44, 0, 16)
+		SuggestedDName.Position = UDim2.new(0, 40, 0, 22)
+		SuggestedDName.BackgroundTransparency = 1
+		SuggestedDName.Font = Enum.Font.Gotham
+		SuggestedDName.Text = ""
+		SuggestedDName.TextColor3 = Color3.fromRGB(180, 180, 185)
+		SuggestedDName.TextSize = 10
+		SuggestedDName.TextXAlignment = Enum.TextXAlignment.Left
+		SuggestedDName.TextTruncate = Enum.TextTruncate.AtEnd
+		SuggestedDName.Parent = SuggestedCard
+
+		-- Horizontal border line below the likely match area
+		local TopSectionDivider = Instance.new("Frame")
+		TopSectionDivider.Size = UDim2.new(1, -24, 0, 1)
+		TopSectionDivider.Position = UDim2.new(0, 12, 0, 157)
+		TopSectionDivider.BackgroundColor3 = Color3.fromRGB(45, 45, 50)
+		TopSectionDivider.BackgroundTransparency = 0.4
+		TopSectionDivider.BorderSizePixel = 0
+		TopSectionDivider.Parent = SidebarContainer
+
+		local currentSuggestedPlayer = nil
+		SuggestedCard.MouseButton1Click:Connect(function()
+			if currentSuggestedPlayer then
+				selectPlayerProfile(currentSuggestedPlayer)
+			end
+		end)
+		Airflow:Hover(SuggestedCard)
 		-- =========================================================================
 
 		-- 4. Player Cards Scrolling Container
@@ -4394,12 +4411,10 @@ function Response:AddPlayerSidebar(config)
 		PlayerListFrame.Name = Airflow:RandomString()
 		
 		-- =========================================================================
-		-- [REPLACED/UPDATED VALUES]: Recalculated size & position offsets
+		-- SIZING CALCULATIONS & CURRENT TARGET CARD FRAME WITH TOP DIVIDER
 		-- =========================================================================
-		PlayerListFrame.Size = UDim2.new(1, -16, 1, -210) -- Modified height to account for footer
-		PlayerListFrame.Position = UDim2.new(0, 12, 0, 142) -- Adjusted to start beneath Likely Match
-		-- =========================================================================
-		
+		PlayerListFrame.Size = UDim2.new(1, -16, 1, -235) -- Adjusted height limits
+		PlayerListFrame.Position = UDim2.new(0, 12, 0, 168) -- Shifted start below top divider line
 		PlayerListFrame.BackgroundTransparency = 1
 		PlayerListFrame.BorderSizePixel = 0
 		PlayerListFrame.ScrollBarThickness = 2
@@ -4408,54 +4423,75 @@ function Response:AddPlayerSidebar(config)
 		PlayerListFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
 		PlayerListFrame.Parent = SidebarContainer
 
-		-- =========================================================================
-		-- [INSERT CODE HERE]: CURRENT TARGETED PLAYER FOOTER PANEL
-		-- =========================================================================
-		local TargetedPanel = Instance.new("Frame")
-		TargetedPanel.Name = "TargetedPlayerFooter"
-		TargetedPanel.BackgroundColor3 = Color3.fromRGB(36, 35, 35)
-		TargetedPanel.BackgroundTransparency = 0.5
-		TargetedPanel.BorderSizePixel = 0
-		TargetedPanel.Position = UDim2.new(0, 12, 1, -60)
-		TargetedPanel.Size = UDim2.new(1, -24, 0, 50)
-		TargetedPanel.Parent = SidebarContainer
+		-- Horizontal border line positioned above the Current Target block
+		local BottomSectionDivider = Instance.new("Frame")
+		BottomSectionDivider.Size = UDim2.new(1, -24, 0, 1)
+		BottomSectionDivider.Position = UDim2.new(0, 12, 1, -74)
+		BottomSectionDivider.BackgroundColor3 = Color3.fromRGB(45, 45, 50)
+		BottomSectionDivider.BackgroundTransparency = 0.4
+		BottomSectionDivider.BorderSizePixel = 0
+		BottomSectionDivider.Parent = SidebarContainer
+
+		local TargetHeader = Instance.new("TextLabel")
+		TargetHeader.Size = UDim2.new(1, -24, 0, 12)
+		TargetHeader.Position = UDim2.new(0, 12, 1, -66)
+		TargetHeader.BackgroundTransparency = 1
+		TargetHeader.Font = Enum.Font.GothamBold
+		TargetHeader.Text = "CURRENT TARGET"
+		TargetHeader.TextColor3 = Color3.fromRGB(155, 155, 162)
+		TargetHeader.TextSize = 9
+		TargetHeader.TextXAlignment = Enum.TextXAlignment.Left
+		TargetHeader.Parent = SidebarContainer
+
+		local TargetCard = Instance.new("Frame")
+		TargetCard.Name = "CurrentTargetCard"
+		TargetCard.Size = UDim2.new(1, -24, 0, 45)
+		TargetCard.Position = UDim2.new(0, 12, 1, -50)
+		TargetCard.BackgroundColor3 = Color3.fromRGB(91, 91, 91)
+		TargetCard.BackgroundTransparency = 0.8
+		TargetCard.ClipsDescendants = true
+		TargetCard.Parent = SidebarContainer
 		
-		local TargetedCorner = Instance.new("UICorner")
-		TargetedCorner.CornerRadius = UDim.new(0, 4)
-		TargetedCorner.Parent = TargetedPanel
+		local TargetCorner = Instance.new("UICorner")
+		TargetCorner.CornerRadius = UDim.new(0, 4)
+		TargetCorner.Parent = TargetCard
 
-		local TargetTitle = Instance.new("TextLabel")
-		TargetTitle.BackgroundTransparency = 1
-		TargetTitle.Text = "CURRENT TARGET"
-		TargetTitle.Font = Enum.Font.GothamBold
-		TargetTitle.TextSize = 9
-		TargetTitle.TextColor3 = Color3.fromRGB(155, 155, 162)
-		TargetTitle.TextXAlignment = Enum.TextXAlignment.Left
-		TargetTitle.Position = UDim2.new(0, 10, 0, 4)
-		TargetTitle.Size = UDim2.new(1, -20, 0, 12)
-		TargetTitle.Parent = TargetedPanel
+		local TargetAvatar = Instance.new("ImageLabel")
+		TargetAvatar.Size = UDim2.new(0, 28, 0, 28)
+		TargetAvatar.Position = UDim2.new(0, 6, 0.5, -14)
+		TargetAvatar.BackgroundColor3 = Color3.fromRGB(15, 15, 18)
+		TargetAvatar.BackgroundTransparency = 0.5
+		TargetAvatar.ScaleType = Enum.ScaleType.Crop
+		TargetAvatar.Image = ""
+		TargetAvatar.Parent = TargetCard
+		
+		local TargetAvCorner = Instance.new("UICorner")
+		TargetAvCorner.CornerRadius = UDim.new(1, 0)
+		TargetAvCorner.Parent = TargetAvatar
 
-		local TargetName = Instance.new("TextLabel")
-		TargetName.BackgroundTransparency = 1
-		TargetName.Text = "No active target"
-		TargetName.Font = Enum.Font.GothamMedium
-		TargetName.TextSize = 11
-		TargetName.TextColor3 = Color3.fromRGB(235, 235, 238)
-		TargetName.TextXAlignment = Enum.TextXAlignment.Left
-		TargetName.Position = UDim2.new(0, 10, 0, 16)
-		TargetName.Size = UDim2.new(1, -20, 0, 16)
-		TargetName.Parent = TargetedPanel
+		local TargetUName = Instance.new("TextLabel")
+		TargetUName.Size = UDim2.new(1, -44, 0, 18)
+		TargetUName.Position = UDim2.new(0, 40, 0, 5)
+		TargetUName.BackgroundTransparency = 1
+		TargetUName.Font = Enum.Font.GothamMedium
+		TargetUName.Text = "No active target"
+		TargetUName.TextColor3 = Color3.fromRGB(255, 255, 255)
+		TargetUName.TextSize = 11
+		TargetUName.TextXAlignment = Enum.TextXAlignment.Left
+		TargetUName.TextTruncate = Enum.TextTruncate.AtEnd
+		TargetUName.Parent = TargetCard
 
-		local TargetIdLabel = Instance.new("TextLabel")
-		TargetIdLabel.BackgroundTransparency = 1
-		TargetIdLabel.Text = "ID: ----------"
-		TargetIdLabel.Font = Enum.Font.Code
-		TargetIdLabel.TextSize = 9
-		TargetIdLabel.TextColor3 = Color3.fromRGB(130, 130, 136)
-		TargetIdLabel.TextXAlignment = Enum.TextXAlignment.Left
-		TargetIdLabel.Position = UDim2.new(0, 10, 0, 31)
-		TargetIdLabel.Size = UDim2.new(1, -20, 0, 14)
-		TargetIdLabel.Parent = TargetedPanel
+		local TargetDName = Instance.new("TextLabel")
+		TargetDName.Size = UDim2.new(1, -44, 0, 16)
+		TargetDName.Position = UDim2.new(0, 40, 0, 22)
+		TargetDName.BackgroundTransparency = 1
+		TargetDName.Font = Enum.Font.Gotham
+		TargetDName.Text = "Select from list"
+		TargetDName.TextColor3 = Color3.fromRGB(180, 180, 185)
+		TargetDName.TextSize = 10
+		TargetDName.TextXAlignment = Enum.TextXAlignment.Left
+		TargetDName.TextTruncate = Enum.TextTruncate.AtEnd
+		TargetDName.Parent = TargetCard
 		-- =========================================================================
 
 		local ListLayout = Instance.new("UIListLayout")
@@ -4521,30 +4557,24 @@ function Response:AddPlayerSidebar(config)
 			if p then
 				setVisualCardActive(p, true)
 				
-				-- Update Bottom Target Footer Text
-				TargetName.Text = p.DisplayName .. " (@" .. p.Name .. ")"
-				TargetIdLabel.Text = "ID: " .. tostring(p.UserId)
+				-- Synchronize current target card appearance perfectly
+				TargetUName.Text = "@" .. p.Name
+				TargetDName.Text = p.DisplayName
 				
-				-- Update Top Suggested Match Profile
-				SuggestedName.Text = p.Name
-				SuggestedDisplay.Text = p.DisplayName
 				task.spawn(function()
 					local ok, img = pcall(function() 
 						return Players:GetUserThumbnailAsync(p.UserId, Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size48x48) 
 					end)
-					if ok then SuggestedAvatar.Image = img end
+					if ok then TargetAvatar.Image = img end
 				end)
 
 				if SidebarResponse.OnSelected then
 					SidebarResponse.OnSelected(p)
 				end
 			else
-				-- Reset labels to default if nil layout states fall through
-				TargetName.Text = "No active target"
-				TargetIdLabel.Text = "ID: ----------"
-				SuggestedName.Text = "No match"
-				SuggestedDisplay.Text = "Keep typing"
-				SuggestedAvatar.Image = ""
+				TargetUName.Text = "No active target"
+				TargetDName.Text = "Select from list"
+				TargetAvatar.Image = ""
 			end
 		end
 
@@ -4632,15 +4662,39 @@ function Response:AddPlayerSidebar(config)
 			if SidebarResponse.SelectedPlayer == p then SidebarResponse.SelectedPlayer = nil end
 		end)
 
-		-- Query matching supporting dual Username and DisplayName lookups
+		-- Query matching supporting dual Username and DisplayName lookups + Likely Match tracking
 		SearchBox:GetPropertyChangedSignal("Text"):Connect(function()
 			local query = string.lower(SearchBox.Text)
+			local firstMatch = nil
+			
 			for p, data in pairs(playerCards) do
 				if query == "" or string.find(string.lower(p.Name), query) or string.find(string.lower(p.DisplayName), query) then
 					data.Frame.Visible = true
+					if query ~= "" and not firstMatch then
+						firstMatch = p -- Target the closest alphabetic/list occurrence matching input
+					end
 				else
 					data.Frame.Visible = false
 				end
+			end
+			
+			-- Render or clear the closest structural candidate match card
+			if firstMatch then
+				currentSuggestedPlayer = firstMatch
+				SuggestedUName.Text = "@" .. firstMatch.Name
+				SuggestedDName.Text = firstMatch.DisplayName
+				SuggestedCard.Visible = true
+				
+				task.spawn(function()
+					local ok, img = pcall(function() 
+						return Players:GetUserThumbnailAsync(firstMatch.UserId, Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size48x48) 
+					end)
+					if ok then SuggestedAvatar.Image = img end
+				end)
+			else
+				currentSuggestedPlayer = nil
+				SuggestedCard.Visible = false
+				SuggestedAvatar.Image = ""
 			end
 		end)
 
