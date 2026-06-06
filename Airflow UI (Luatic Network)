@@ -4364,12 +4364,8 @@ function Response:AddPlayerSidebar(config)
 		TargetCard.Name = "CurrentTargetCard"
 		TargetCard.Size = UDim2.new(1, -24, 0, 45)
 		TargetCard.Position = UDim2.new(0, 12, 1, -50)
-		-- =========================================================================
-		-- [UPDATED COLOR]: Changed to match the active highlighted card color scheme
-		-- =========================================================================
-		TargetCard.BackgroundColor3 = Color3.fromRGB(144, 144, 144)
-		TargetCard.BackgroundTransparency = 0.5
-		-- =========================================================================
+		TargetCard.BackgroundColor3 = Color3.fromRGB(91, 91, 91)
+		TargetCard.BackgroundTransparency = 0.8
 		TargetCard.ClipsDescendants = true
 		TargetCard.Parent = SidebarContainer
 		
@@ -4416,7 +4412,7 @@ function Response:AddPlayerSidebar(config)
 		-- =========================================================================
 
 		local ListLayout = Instance.new("UIListLayout")
-		ListLayout.SortOrder = Enum.SortOrder.Name
+		ListLayout.SortOrder = Enum.SortOrder.LayoutOrder
 		ListLayout.Padding = UDim.new(0, 5)
 		ListLayout.Parent = PlayerListFrame
 
@@ -4583,49 +4579,119 @@ function Response:AddPlayerSidebar(config)
 			if SidebarResponse.SelectedPlayer == p then SidebarResponse.SelectedPlayer = nil end
 		end)
 
-		-- Query matching supporting dual Username and DisplayName lookups
-		SearchBox:GetPropertyChangedSignal("Text"):Connect(function()
-			local query = string.lower(SearchBox.Text)
-			for p, data in pairs(playerCards) do
-				if query == "" or string.find(string.lower(p.Name), query) or string.find(string.lower(p.DisplayName), query) then
-					data.Frame.Visible = true
-				else
-					data.Frame.Visible = false
+		local function getMatchScore(inputStr, targetStr)
+			inputStr = inputStr:lower()
+			targetStr = targetStr:lower()
+			if inputStr == targetStr then return 1000 end
+			if targetStr:find(inputStr, 1, true) then return 900 - #targetStr end
+
+			local function calcLev(s, t)
+				local sl, tl = #s, #t
+				if sl == 0 then return tl end
+				if tl == 0 then return sl end
+				local m = {}
+				for i = 0, sl do m[i] = {[0] = i} end
+				for j = 0, tl do m[0][j] = j end
+				for i = 1, sl do
+					for j = 1, tl do
+						local c = (s:sub(i, i) == t:sub(j, j)) and 0 or 1
+						m[i][j] = math.min(m[i - 1][j] + 1, m[i][j - 1] + 1, m[i - 1][j - 1] + c)
+					end
 				end
+				return m[sl][tl]
 			end
+
+			local function calcJac(s, t)
+				local ss, ts = {}, {}
+				for i = 1, #s do ss[s:sub(i, i)] = true end
+				for i = 1, #t do ts[t:sub(i, i)] = true end
+				local inter, union = 0, 0
+				for c in next, ss do
+					if ts[c] then inter = inter + 1 end
+					union = union + 1
+				end
+				for c in next, ts do
+					if not ss[c] then union = union + 1 end
+				end
+				return union == 0 and 0 or (inter / union)
+			end
+
+			local function calcOrd(s, t)
+				local matches, idx = 0, 1
+				for i = 1, #s do
+					local c = s:sub(i, i)
+					while idx <= #t do
+						if t:sub(idx, idx) == c then
+							matches = matches + 1
+							idx = idx + 1
+							break
+						end
+						idx = idx + 1
+					end
+				end
+				return matches / #s
+			end
+
+			local levDist = calcLev(inputStr, targetStr)
+			local normLev = 1 - (levDist / math.max(#inputStr, #targetStr))
+			local jaccard = calcJac(inputStr, targetStr)
+			local ordered = calcOrd(inputStr, targetStr)
+
+			return (normLev * 500) + (jaccard * 300) + (ordered * 200)
+		end
+
+		local function sortPlayerCards()
+			local query = SearchBox.Text:lower():gsub("[%s\r\n]+", "")
+			if query == "" then
+				for _, data in pairs(playerCards) do
+					data.Frame.LayoutOrder = 0
+				end
+				return
+			end
+
+			for p, data in pairs(playerCards) do
+				local nScore = getMatchScore(query, p.Name)
+				local dScore = getMatchScore(query, p.DisplayName)
+				local high = math.max(nScore, dScore)
+				data.Frame.LayoutOrder = -math.floor(high * 100)
+			end
+		end
+
+		SearchBox:GetPropertyChangedSignal("Text"):Connect(function()
+			local cleanText = SearchBox.Text:gsub("[\r\n]+", "")
+			if SearchBox.Text ~= cleanText then
+				SearchBox.Text = cleanText
+			end
+			sortPlayerCards()
 		end)
 
-		-- Handle pressing Enter: select the top matching player, clear the text, and maintain focus
 		SearchBox.FocusLost:Connect(function(enterPressed)
 			if enterPressed then
-				local topPlayer = nil
-				local query = string.lower(SearchBox.Text)
-				
-				-- Only attempt selection if the user actually typed a search query
+				local query = SearchBox.Text:lower():gsub("[%s\r\n]+", "")
 				if query ~= "" then
-					for p, data in pairs(playerCards) do
-						if data.Frame.Visible then
-							if not topPlayer or string.lower(p.Name) < string.lower(topPlayer.Name) then
-								topPlayer = p
-							end
+					local topPlayer = nil
+					local bestScore = -math.huge
+					for p, _ in pairs(playerCards) do
+						local nScore = getMatchScore(query, p.Name)
+						local dScore = getMatchScore(query, p.DisplayName)
+						local high = math.max(nScore, dScore)
+						if high > bestScore then
+							bestScore = high
+							topPlayer = p
 						end
 					end
-					
 					if topPlayer then
 						selectPlayerProfile(topPlayer)
 					end
 				end
-				
-				-- =========================================================================
-				-- [UPDATED LOGIC]: Clears the text completely to reset any spacing bugs
-				-- =========================================================================
-				SearchBox.Text = "" 
-				
-				-- Reclaim focus immediately so you can start typing again without clicking
+
+				SearchBox.Text = ""
+				sortPlayerCards()
+
 				task.defer(function()
 					SearchBox:CaptureFocus()
+					SearchBox.Text = ""
 				end)
-				-- =========================================================================
 			end
 		end)
 
