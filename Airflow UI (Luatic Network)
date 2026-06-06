@@ -4590,6 +4590,28 @@ function Response:AddPlayerSidebar(config)
 			end
 		end)
 
+		-- Handle pressing Enter to automatically select the top player from the search results
+		SearchBox.FocusLost:Connect(function(enterPressed)
+			if enterPressed then
+				local topPlayer = nil
+				for p, data in pairs(playerCards) do
+					if data.Frame.Visible then
+						if not topPlayer or string.lower(p.Name) < string.lower(topPlayer.Name) then
+							topPlayer = p
+						end
+					end
+				end
+				
+				if topPlayer then
+					selectPlayerProfile(topPlayer)
+				end
+				
+				task.defer(function()
+					SearchBox:CaptureFocus()
+				end)
+			end
+		end)
+
 		return SidebarResponse
 	end
 
