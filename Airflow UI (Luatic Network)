@@ -4364,8 +4364,12 @@ function Response:AddPlayerSidebar(config)
 		TargetCard.Name = "CurrentTargetCard"
 		TargetCard.Size = UDim2.new(1, -24, 0, 45)
 		TargetCard.Position = UDim2.new(0, 12, 1, -50)
-		TargetCard.BackgroundColor3 = Color3.fromRGB(91, 91, 91)
-		TargetCard.BackgroundTransparency = 0.8
+		-- =========================================================================
+		-- [UPDATED COLOR]: Changed to match the active highlighted card color scheme
+		-- =========================================================================
+		TargetCard.BackgroundColor3 = Color3.fromRGB(144, 144, 144)
+		TargetCard.BackgroundTransparency = 0.5
+		-- =========================================================================
 		TargetCard.ClipsDescendants = true
 		TargetCard.Parent = SidebarContainer
 		
@@ -4591,36 +4595,40 @@ function Response:AddPlayerSidebar(config)
 			end
 		end)
 
-		-- Handle pressing Enter to automatically select the top player from the search results cleanly
+		-- Handle pressing Enter: select the top matching player, clear the text, and maintain focus
 		SearchBox.FocusLost:Connect(function(enterPressed)
 			if enterPressed then
-				-- Strip out any newline characters or trailing space padding created by pressing Enter
-				local cleanText = string.gsub(SearchBox.Text, "[\r\n]+", "")
-				SearchBox.Text = cleanText
-				
-				-- Loop through elements in alphabetical order or layout order to find the first visible card
 				local topPlayer = nil
-				for p, data in pairs(playerCards) do
-					if data.Frame.Visible then
-						if not topPlayer or string.lower(p.Name) < string.lower(topPlayer.Name) then
-							topPlayer = p
+				local query = string.lower(SearchBox.Text)
+				
+				-- Only attempt selection if the user actually typed a search query
+				if query ~= "" then
+					for p, data in pairs(playerCards) do
+						if data.Frame.Visible then
+							if not topPlayer or string.lower(p.Name) < string.lower(topPlayer.Name) then
+								topPlayer = p
+							end
 						end
+					end
+					
+					if topPlayer then
+						selectPlayerProfile(topPlayer)
 					end
 				end
 				
-				-- If a visible matching player exists, select them instantly
-				if topPlayer then
-					selectPlayerProfile(topPlayer)
-				end
+				-- =========================================================================
+				-- [UPDATED LOGIC]: Clears the text completely to reset any spacing bugs
+				-- =========================================================================
+				SearchBox.Text = "" 
 				
-				-- Immediately reclaim focus so you can keep typing or backspacing seamlessly without spaces
+				-- Reclaim focus immediately so you can start typing again without clicking
 				task.defer(function()
 					SearchBox:CaptureFocus()
-					-- Move cursor back to the end of your clean text
-					SearchBox.CursorPosition = #SearchBox.Text + 1
 				end)
+				-- =========================================================================
 			end
 		end)
+
 		return SidebarResponse
 	end
 
