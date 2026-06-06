@@ -3911,14 +3911,14 @@ function Airflow:Init(config)
 				})
 			end;
 
-			-- Dynamically calculate the target width based on the current minimization state
-			local targetSize = config.Scale
-			if isMinimized then
-				targetSize = UDim2.new(config.Scale.X.Scale, config.Scale.X.Offset - SidebarWidth, config.Scale.Y.Scale, config.Scale.Y.Offset)
+			-- Calculate true target width depending on active sidebar tracking states
+			local targetWidth = config.Scale.X.Offset
+			if Response._SidebarMinimized then
+				targetWidth = targetWidth - 180 -- Subtract sidebar thickness offset when closed
 			end
 
 			Airflow:CreateAnimation(WindowFrame,0.5,nil,{
-				Size = targetSize;
+				Size = UDim2.new(config.Scale.X.Scale, targetWidth, config.Scale.Y.Scale, config.Scale.Y.Offset);
 				BackgroundTransparency = 0.600;
 			})
 
@@ -3968,14 +3968,11 @@ function Airflow:Init(config)
 				})
 			end;
 
-			-- Dynamically calculate closing dimensions using the current state
-			local currentWidth = config.Scale.X.Offset
-			if isMinimized then
-				currentWidth = config.Scale.X.Offset - SidebarWidth
-			end
+			-- Calculate exact true closing proportions using current width dimensions
+			local closeWidth = WindowFrame.Size.X.Offset - 50
 
 			Airflow:CreateAnimation(WindowFrame,0.5,nil,{
-				Size = UDim2.new(config.Scale.X.Scale, currentWidth - 50, config.Scale.Y.Scale, config.Scale.Y.Offset - 50);
+				Size = UDim2.new(config.Scale.X.Scale, closeWidth, config.Scale.Y.Scale, config.Scale.Y.Offset - 50);
 				BackgroundTransparency = 1;
 			})
 
@@ -4430,38 +4427,38 @@ function Response:AddPlayerSidebar(config)
 
 		local playerCards = {}
 
-		-- 5. Minimize/Maximize Handler with precise UI layout lock counter-animations
 		MinimizeButton.MouseButton1Click:Connect(function()
 			isMinimized = not isMinimized
+			
+			-- =========================================================================
+			-- NEW STATE ATTACHMENT: Updates library scope configuration memory
+			-- =========================================================================
+			self._SidebarMinimized = isMinimized
+			-- =========================================================================
 			
 			local changeWidth = isMinimized and -SidebarWidth or SidebarWidth
 			local changePos = isMinimized and (SidebarWidth / 2) or (-SidebarWidth / 2)
 			
-			-- Scale WindowFrame smoothly
 			Airflow:CreateAnimation(WindowFrame, 0.4, Enum.EasingStyle.Quint, {
 				Size = WindowFrame.Size + UDim2.new(0, changeWidth, 0, 0),
 				Position = WindowFrame.Position + UDim2.new(0, changePos, 0, 0)
 			})
 			
-			-- Toggle visibility of Sidebar area
 			Airflow:CreateAnimation(SidebarContainer, 0.4, Enum.EasingStyle.Quint, {
 				Size = isMinimized and UDim2.new(0, 0, 1, 0) or UDim2.new(0, SidebarWidth, 1, 0)
 			})
 			
-			-- Adjust toggle icon placement
 			Airflow:CreateAnimation(MinimizeButton, 0.4, Enum.EasingStyle.Quint, {
 				Position = isMinimized and UDim2.new(0, 5, 0, 10) or UDim2.new(0, SidebarWidth - 25, 0, 10)
 			})
 			
 			MinimizeButton.Text = isMinimized and "›" or "‹"
 			
-			-- CRITICAL: Counter-animate workspace to perfectly freeze all native app sizing dimensions
 			Airflow:CreateAnimation(MainFrame, 0.4, Enum.EasingStyle.Quint, {
 				Size = isMinimized and UDim2.new(1, 0, 1, -40) or UDim2.new(1, -SidebarWidth, 1, -40),
 				Position = isMinimized and UDim2.new(0, 0, 1, 0) or UDim2.new(0, SidebarWidth, 1, 0)
 			})
 			
-			-- CRITICAL: Counter-animate headers to keep logo/title centered strictly above main workspace
 			Airflow:CreateAnimation(Headers, 0.4, Enum.EasingStyle.Quint, {
 				Size = isMinimized and UDim2.new(1, 0, 0, 40) or UDim2.new(1, -SidebarWidth, 0, 40),
 				Position = isMinimized and UDim2.new(0.5, 0, 0, 0) or UDim2.new(0.5, SidebarWidth / 2, 0, 0)
