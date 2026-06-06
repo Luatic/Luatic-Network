@@ -4222,18 +4222,17 @@ function Response:AddPlayerSidebar(config)
 		local SidebarWidth = 180
 		local isMinimized = false
 
-		-- Initial expansion of the main framework container
+		-- 1. Apply initial layout offsets to lock dimensions while sidebar is expanded
 		WindowFrame.Size = WindowFrame.Size + UDim2.new(0, SidebarWidth, 0, 0)
 		WindowFrame.Position = WindowFrame.Position + UDim2.new(0, -SidebarWidth / 2, 0, 0)
 
-		-- Shift existing content frames cleanly to the right
-		for _, child in ipairs(WindowFrame:GetChildren()) do
-			if child:IsA("GuiObject") then
-				child.Position = child.Position + UDim2.new(0, SidebarWidth, 0, 0)
-			end
-		end
+		MainFrame.Size = UDim2.new(1, -SidebarWidth, 1, -40)
+		MainFrame.Position = UDim2.new(0, SidebarWidth, 1, 0)
 
-		-- Sidebar container matching MainFrame background styling flawlessly
+		Headers.Size = UDim2.new(1, -SidebarWidth, 0, 40)
+		Headers.Position = UDim2.new(0.5, SidebarWidth / 2, 0, 0)
+
+		-- 2. Construct Sidebar Container with the correct translucent dark grey palette
 		local SidebarContainer = Instance.new("Frame")
 		SidebarContainer.Name = "SidebarContainer"
 		SidebarContainer.Position = UDim2.new(0, 0, 0, 0)
@@ -4265,7 +4264,7 @@ function Response:AddPlayerSidebar(config)
 		HeaderText.TextTruncate = Enum.TextTruncate.AtEnd
 		HeaderText.Parent = SidebarContainer
 
-		-- Minimize Toggle Button (Guillemet)
+		-- Smooth Minimize/Maximize Arrow Button
 		local MinimizeButton = Instance.new("TextButton")
 		MinimizeButton.Name = "MinimizeSidebar"
 		MinimizeButton.Size = UDim2.fromOffset(20, 20)
@@ -4278,40 +4277,56 @@ function Response:AddPlayerSidebar(config)
 		MinimizeButton.ZIndex = 10
 		MinimizeButton.Parent = WindowFrame
 
+		-- 3. Search Bar styled perfectly after your custom AddTextbox element layout
 		local SearchFrame = Instance.new("Frame")
-		SearchFrame.Size = UDim2.new(1, -24, 0, 28)
+		SearchFrame.Name = Airflow:RandomString()
+		SearchFrame.Size = UDim2.new(1, -24, 0, 35)
 		SearchFrame.Position = UDim2.new(0, 12, 0, 42)
-		SearchFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
-		SearchFrame.BackgroundTransparency = 0.3
+		SearchFrame.BackgroundColor3 = Color3.fromRGB(91, 91, 91)
+		SearchFrame.BackgroundTransparency = 0.8
+		SearchFrame.BorderSizePixel = 0
 		SearchFrame.Parent = SidebarContainer
 		
 		local SearchCorner = Instance.new("UICorner")
 		SearchCorner.CornerRadius = UDim.new(0, 4)
 		SearchCorner.Parent = SearchFrame
+
+		local SearchBoxBlock = Instance.new("Frame")
+		SearchBoxBlock.Name = Airflow:RandomString()
+		SearchBoxBlock.AnchorPoint = Vector2.new(1, 0.5)
+		SearchBoxBlock.BackgroundColor3 = Color3.fromRGB(36, 35, 35)
+		SearchBoxBlock.BackgroundTransparency = 0.5
+		SearchBoxBlock.BorderSizePixel = 0
+		SearchBoxBlock.Position = UDim2.new(1, -5, 0.5, 0)
+		SearchBoxBlock.Size = UDim2.new(1, -10, 0, 25)
+		SearchBoxBlock.ZIndex = 7
+		SearchBoxBlock.Parent = SearchFrame
 		
-		local SearchStroke = Instance.new("UIStroke")
-		SearchStroke.Color = Color3.fromRGB(50, 50, 55)
-		SearchStroke.Transparency = 0.5
-		SearchStroke.Parent = SearchFrame
+		local SearchBoxCorner = Instance.new("UICorner")
+		SearchBoxCorner.CornerRadius = UDim.new(0, 4)
+		SearchBoxCorner.Parent = SearchBoxBlock
 
 		local SearchBox = Instance.new("TextBox")
-		SearchBox.Size = UDim2.new(1, -10, 1, 0)
-		SearchBox.Position = UDim2.new(0, 8, 0, 0)
+		SearchBox.AnchorPoint = Vector2.new(0.5, 0.5)
 		SearchBox.BackgroundTransparency = 1
-		SearchBox.Font = Enum.Font.Gotham
+		SearchBox.BorderSizePixel = 0
+		SearchBox.Position = UDim2.new(0.5, 0, 0.5, 0)
+		SearchBox.Size = UDim2.new(1, -10, 1, -5)
+		SearchBox.ZIndex = 8
+		SearchBox.ClearTextOnFocus = false
+		SearchBox.Font = Enum.Font.GothamMedium
 		SearchBox.PlaceholderText = "Search player..."
-		SearchBox.PlaceholderColor3 = Color3.fromRGB(100, 100, 110)
 		SearchBox.Text = ""
 		SearchBox.TextColor3 = Color3.fromRGB(255, 255, 255)
-		SearchBox.TextSize = 11
+		SearchBox.TextSize = 10
 		SearchBox.TextXAlignment = Enum.TextXAlignment.Left
-		SearchBox.TextTruncate = Enum.TextTruncate.AtEnd
-		SearchBox.ClipsDescendants = true
-		SearchBox.Parent = SearchFrame
+		SearchBox.Parent = SearchBoxBlock
 
+		-- 4. Player Cards Scrolling Container
 		local PlayerListFrame = Instance.new("ScrollingFrame")
-		PlayerListFrame.Size = UDim2.new(1, -16, 1, -85)
-		PlayerListFrame.Position = UDim2.new(0, 12, 0, 80)
+		PlayerListFrame.Name = Airflow:RandomString()
+		PlayerListFrame.Size = UDim2.new(1, -16, 1, -95)
+		PlayerListFrame.Position = UDim2.new(0, 12, 0, 85)
 		PlayerListFrame.BackgroundTransparency = 1
 		PlayerListFrame.BorderSizePixel = 0
 		PlayerListFrame.ScrollBarThickness = 2
@@ -4322,52 +4337,56 @@ function Response:AddPlayerSidebar(config)
 
 		local ListLayout = Instance.new("UIListLayout")
 		ListLayout.SortOrder = Enum.SortOrder.Name
-		ListLayout.Padding = UDim.new(0, 4)
+		ListLayout.Padding = UDim.new(0, 5)
 		ListLayout.Parent = PlayerListFrame
 
 		local playerCards = {}
 
-		-- Handling Smooth Minimize / Maximize UI Logic Transitions
+		-- 5. Minimize/Maximize Handler with precise UI layout lock counter-animations
 		MinimizeButton.MouseButton1Click:Connect(function()
 			isMinimized = not isMinimized
 			
 			local changeWidth = isMinimized and -SidebarWidth or SidebarWidth
 			local changePos = isMinimized and (SidebarWidth / 2) or (-SidebarWidth / 2)
-			local shiftChildren = isMinimized and -SidebarWidth or SidebarWidth
 			
+			-- Scale WindowFrame smoothly
 			Airflow:CreateAnimation(WindowFrame, 0.4, Enum.EasingStyle.Quint, {
 				Size = WindowFrame.Size + UDim2.new(0, changeWidth, 0, 0),
 				Position = WindowFrame.Position + UDim2.new(0, changePos, 0, 0)
 			})
 			
+			-- Toggle visibility of Sidebar area
 			Airflow:CreateAnimation(SidebarContainer, 0.4, Enum.EasingStyle.Quint, {
 				Size = isMinimized and UDim2.new(0, 0, 1, 0) or UDim2.new(0, SidebarWidth, 1, 0)
 			})
 			
+			-- Adjust toggle icon placement
 			Airflow:CreateAnimation(MinimizeButton, 0.4, Enum.EasingStyle.Quint, {
 				Position = isMinimized and UDim2.new(0, 5, 0, 10) or UDim2.new(0, SidebarWidth - 25, 0, 10)
 			})
 			
 			MinimizeButton.Text = isMinimized and "›" or "‹"
 			
-			for _, child in ipairs(WindowFrame:GetChildren()) do
-				if child:IsA("GuiObject") and child ~= SidebarContainer and child ~= MinimizeButton then
-					Airflow:CreateAnimation(child, 0.4, Enum.EasingStyle.Quint, {
-						Position = child.Position + UDim2.new(0, shiftChildren, 0, 0)
-					})
-				end
-			end
+			-- CRITICAL: Counter-animate workspace to perfectly freeze all native app sizing dimensions
+			Airflow:CreateAnimation(MainFrame, 0.4, Enum.EasingStyle.Quint, {
+				Size = isMinimized and UDim2.new(1, 0, 1, -40) or UDim2.new(1, -SidebarWidth, 1, -40),
+				Position = isMinimized and UDim2.new(0, 0, 1, 0) or UDim2.new(0, SidebarWidth, 1, 0)
+			})
+			
+			-- CRITICAL: Counter-animate headers to keep logo/title centered strictly above main workspace
+			Airflow:CreateAnimation(Headers, 0.4, Enum.EasingStyle.Quint, {
+				Size = isMinimized and UDim2.new(1, 0, 0, 40) or UDim2.new(1, -SidebarWidth, 0, 40),
+				Position = isMinimized and UDim2.new(0.5, 0, 0, 0) or UDim2.new(0.5, SidebarWidth / 2, 0, 0)
+			})
 		end)
 
 		local function setVisualCardActive(p, state)
 			local cardData = playerCards[p]
 			if not cardData then return end
 			if state then
-				Airflow:CreateAnimation(cardData.Frame, 0.2, Enum.EasingStyle.Quint, {BackgroundColor3 = Color3.fromRGB(35, 35, 42)})
-				Airflow:CreateAnimation(cardData.Stroke, 0.2, Enum.EasingStyle.Quint, {Color = Color3.fromRGB(255, 255, 255), Transparency = 0.3})
+				Airflow:CreateAnimation(cardData.Frame, 0.2, Enum.EasingStyle.Quint, {BackgroundColor3 = Color3.fromRGB(144, 144, 144), BackgroundTransparency = 0.5})
 			else
-				Airflow:CreateAnimation(cardData.Frame, 0.2, Enum.EasingStyle.Quint, {BackgroundColor3 = Color3.fromRGB(22, 22, 26)})
-				Airflow:CreateAnimation(cardData.Stroke, 0.2, Enum.EasingStyle.Quint, {Color = Color3.fromRGB(45, 45, 50), Transparency = 0.6})
+				Airflow:CreateAnimation(cardData.Frame, 0.2, Enum.EasingStyle.Quint, {BackgroundColor3 = Color3.fromRGB(91, 91, 91), BackgroundTransparency = 0.8})
 			end
 		end
 
@@ -4384,13 +4403,15 @@ function Response:AddPlayerSidebar(config)
 			end
 		end
 
+		-- 6. Player Card builder featuring the button color palette & vertical text alignment
 		local function addPlayerCard(p)
 			if playerCards[p] then return end
 
 			local card = Instance.new("TextButton")
 			card.Name = p.Name
-			card.Size = UDim2.new(1, -6, 0, 32)
-			card.BackgroundColor3 = Color3.fromRGB(22, 22, 26)
+			card.Size = UDim2.new(1, -6, 0, 45) -- Increased height to cleanly fit vertical text placement
+			card.BackgroundColor3 = Color3.fromRGB(91, 91, 91)
+			card.BackgroundTransparency = 0.8 -- Matches native button active palette transparency
 			card.Text = ""
 			card.AutoButtonColor = false
 			card.ClipsDescendants = true
@@ -4400,15 +4421,11 @@ function Response:AddPlayerSidebar(config)
 			CardCorner.CornerRadius = UDim.new(0, 4)
 			CardCorner.Parent = card
 
-			local cStroke = Instance.new("UIStroke")
-			cStroke.Color = Color3.fromRGB(45, 45, 50)
-			cStroke.Transparency = 0.6
-			cStroke.Parent = card
-
 			local pAvatar = Instance.new("ImageLabel")
-			pAvatar.Size = UDim2.new(0, 22, 0, 22)
-			pAvatar.Position = UDim2.new(0, 6, 0.5, -11)
+			pAvatar.Size = UDim2.new(0, 28, 0, 28)
+			pAvatar.Position = UDim2.new(0, 6, 0.5, -14)
 			pAvatar.BackgroundColor3 = Color3.fromRGB(15, 15, 18)
+			pAvatar.BackgroundTransparency = 0.5
 			pAvatar.ScaleType = Enum.ScaleType.Crop
 			pAvatar.Parent = card
 			
@@ -4423,38 +4440,43 @@ function Response:AddPlayerSidebar(config)
 				if ok then pAvatar.Image = img end
 			end)
 
-			-- Name Field displaying both Username and DisplayName without overflow issues
+			-- Username arranged at the top
 			local uName = Instance.new("TextLabel")
-			uName.Size = UDim2.new(1, -42, 1, 0)
-			uName.Position = UDim2.new(0, 34, 0, 0)
+			uName.Size = UDim2.new(1, -44, 0, 18)
+			uName.Position = UDim2.new(0, 40, 0, 5)
 			uName.BackgroundTransparency = 1
-			uName.Font = Enum.Font.Gotham
-			uName.Text = p.DisplayName .. " (@" .. p.Name .. ")"
-			uName.TextColor3 = Color3.fromRGB(220, 220, 225)
+			uName.Font = Enum.Font.GothamMedium
+			uName.Text = "@" .. p.Name
+			uName.TextColor3 = Color3.fromRGB(255, 255, 255)
 			uName.TextSize = 11
 			uName.TextXAlignment = Enum.TextXAlignment.Left
 			uName.TextTruncate = Enum.TextTruncate.AtEnd
 			uName.Parent = card
 
-			card.MouseEnter:Connect(function()
-				if SidebarResponse.SelectedPlayer ~= p then
-					Airflow:CreateAnimation(card, 0.15, Enum.EasingStyle.Quint, {BackgroundColor3 = Color3.fromRGB(28, 28, 34)})
-				end
-			end)
-
-			card.MouseLeave:Connect(function()
-				if SidebarResponse.SelectedPlayer ~= p then
-					Airflow:CreateAnimation(card, 0.15, Enum.EasingStyle.Quint, {BackgroundColor3 = Color3.fromRGB(22, 22, 26)})
-				end
-			end)
+			-- Display Name arranged underneath
+			local dName = Instance.new("TextLabel")
+			dName.Size = UDim2.new(1, -44, 0, 16)
+			dName.Position = UDim2.new(0, 40, 0, 22)
+			dName.BackgroundTransparency = 1
+			dName.Font = Enum.Font.Gotham
+			dName.Text = p.DisplayName
+			dName.TextColor3 = Color3.fromRGB(180, 180, 185)
+			dName.TextSize = 10
+			dName.TextXAlignment = Enum.TextXAlignment.Left
+			dName.TextTruncate = Enum.TextTruncate.AtEnd
+			dName.Parent = card
 
 			card.MouseButton1Click:Connect(function()
 				selectPlayerProfile(p)
 			end)
 
-			playerCards[p] = {Frame = card, Stroke = cStroke}
+			-- Attach native button hover animations
+			Airflow:Hover(card)
+
+			playerCards[p] = {Frame = card}
 		end
 
+		-- Dynamic replication handlers
 		for _, p in ipairs(Players:GetPlayers()) do addPlayerCard(p) end
 		Players.PlayerAdded:Connect(addPlayerCard)
 		Players.PlayerRemoving:Connect(function(p)
@@ -4465,6 +4487,7 @@ function Response:AddPlayerSidebar(config)
 			if SidebarResponse.SelectedPlayer == p then SidebarResponse.SelectedPlayer = nil end
 		end)
 
+		-- Query matching supporting dual Username and DisplayName lookups
 		SearchBox:GetPropertyChangedSignal("Text"):Connect(function()
 			local query = string.lower(SearchBox.Text)
 			for p, data in pairs(playerCards) do
