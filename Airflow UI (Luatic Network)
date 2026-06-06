@@ -3911,8 +3911,14 @@ function Airflow:Init(config)
 				})
 			end;
 
+			-- Dynamically calculate the target width based on the current minimization state
+			local targetSize = config.Scale
+			if isMinimized then
+				targetSize = UDim2.new(config.Scale.X.Scale, config.Scale.X.Offset - SidebarWidth, config.Scale.Y.Scale, config.Scale.Y.Offset)
+			end
+
 			Airflow:CreateAnimation(WindowFrame,0.5,nil,{
-				Size = config.Scale;
+				Size = targetSize;
 				BackgroundTransparency = 0.600;
 			})
 
@@ -3962,8 +3968,14 @@ function Airflow:Init(config)
 				})
 			end;
 
+			-- Dynamically calculate closing dimensions using the current state
+			local currentWidth = config.Scale.X.Offset
+			if isMinimized then
+				currentWidth = config.Scale.X.Offset - SidebarWidth
+			end
+
 			Airflow:CreateAnimation(WindowFrame,0.5,nil,{
-				Size = UDim2.new(config.Scale.X.Scale,config.Scale.X.Offset - 50,config.Scale.Y.Scale,config.Scale.Y.Offset - 50);
+				Size = UDim2.new(config.Scale.X.Scale, currentWidth - 50, config.Scale.Y.Scale, config.Scale.Y.Offset - 50);
 				BackgroundTransparency = 1;
 			})
 
