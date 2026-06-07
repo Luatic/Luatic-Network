@@ -4429,47 +4429,45 @@ function Response:AddPlayerSidebar(config)
 		local playerCards = {}
 
 		local isAnimating = false
-		MinimizeButton.MouseButton1Click:Connect(function()
-			if isAnimating then return end
-			isAnimating = true
-			
-			isMinimized = not isMinimized
-			self._SidebarMinimized = isMinimized
-			
-			local currentScale = config.Scale or (self.Config and self.Config.Scale)
-			local defaultWidth = currentScale and currentScale.X.Offset or 595
-			local targetWidth = isMinimized and (defaultWidth - SidebarWidth) or defaultWidth
-			local targetXPos = isMinimized and (WindowFrame.Position.X.Offset + (SidebarWidth / 2)) or (WindowFrame.Position.X.Offset - (SidebarWidth / 2))
-			
-			Airflow:CreateAnimation(WindowFrame, 0.4, Enum.EasingStyle.Quint, {
-				Size = UDim2.new(WindowFrame.Size.X.Scale, targetWidth, WindowFrame.Size.Y.Scale, WindowFrame.Size.Y.Offset),
-				Position = UDim2.new(WindowFrame.Position.X.Scale, targetXPos, WindowFrame.Position.Y.Scale, WindowFrame.Position.Y.Offset)
-			})
-			
-			Airflow:CreateAnimation(SidebarContainer, 0.4, Enum.EasingStyle.Quint, {
-				Size = isMinimized and UDim2.new(0, 0, 1, 0) or UDim2.new(0, SidebarWidth, 1, 0)
-			})
-			
-			Airflow:CreateAnimation(MinimizeButton, 0.4, Enum.EasingStyle.Quint, {
-				Position = isMinimized and UDim2.new(0, 5, 0, 10) or UDim2.new(0, SidebarWidth - 25, 0, 10)
-			})
-			
-			MinimizeButton.Text = isMinimized and "›" or "‹"
-			
-			Airflow:CreateAnimation(MainFrame, 0.4, Enum.EasingStyle.Quint, {
-				Size = isMinimized and UDim2.new(1, 0, 1, -40) or UDim2.new(1, -SidebarWidth, 1, -40),
-				Position = isMinimized and UDim2.new(0, 0, 1, 0) or UDim2.new(0, SidebarWidth, 1, 0)
-			})
-			
-			Airflow:CreateAnimation(Headers, 0.4, Enum.EasingStyle.Quint, {
-				Size = isMinimized and UDim2.new(1, 0, 0, 40) or UDim2.new(1, -SidebarWidth, 0, 40),
-				Position = isMinimized and UDim2.new(0.5, 0, 0, 0) or UDim2.new(0.5, SidebarWidth / 2, 0, 0)
-			})
-			
-			task.delay(0.4, function()
-				isAnimating = false
-			end)
-		end)
+MinimizeButton.MouseButton1Click:Connect(function()
+	if isAnimating then return end
+	isAnimating = true
+	
+	isMinimized = not isMinimized
+	self._SidebarMinimized = isMinimized
+	
+	local changeWidth = isMinimized and -SidebarWidth or SidebarWidth
+	local changePos = isMinimized and (SidebarWidth / 2) or (-SidebarWidth / 2)
+	
+	Airflow:CreateAnimation(WindowFrame, 0.4, Enum.EasingStyle.Quint, {
+		Size = WindowFrame.Size + UDim2.new(0, changeWidth, 0, 0),
+		Position = WindowFrame.Position + UDim2.new(0, changePos, 0, 0)
+	})
+	
+	Airflow:CreateAnimation(SidebarContainer, 0.4, Enum.EasingStyle.Quint, {
+		Size = isMinimized and UDim2.new(0, 0, 1, 0) or UDim2.new(0, SidebarWidth, 1, 0)
+	})
+	
+	Airflow:CreateAnimation(MinimizeButton, 0.4, Enum.EasingStyle.Quint, {
+		Position = isMinimized and UDim2.new(0, 5, 0, 10) or UDim2.new(0, SidebarWidth - 25, 0, 10)
+	})
+	
+	MinimizeButton.Text = isMinimized and "›" or "‹"
+	
+	Airflow:CreateAnimation(MainFrame, 0.4, Enum.EasingStyle.Quint, {
+		Size = isMinimized and UDim2.new(1, 0, 1, -40) or UDim2.new(1, -SidebarWidth, 1, -40),
+		Position = isMinimized and UDim2.new(0, 0, 1, 0) or UDim2.new(0, SidebarWidth, 1, 0)
+	})
+	
+	Airflow:CreateAnimation(Headers, 0.4, Enum.EasingStyle.Quint, {
+		Size = isMinimized and UDim2.new(1, 0, 0, 40) or UDim2.new(1, -SidebarWidth, 0, 40),
+		Position = isMinimized and UDim2.new(0.5, 0, 0, 0) or UDim2.new(0.5, SidebarWidth / 2, 0, 0)
+	})
+	
+	task.delay(0.4, function()
+		isAnimating = false
+	end)
+end)
 
 		local function setVisualCardActive(p, state)
 			local cardData = playerCards[p]
