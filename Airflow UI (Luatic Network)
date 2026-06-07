@@ -4431,18 +4431,27 @@ function Response:AddPlayerSidebar(config)
 		MinimizeButton.MouseButton1Click:Connect(function()
 			isMinimized = not isMinimized
 			
-			-- =========================================================================
-			-- NEW STATE ATTACHMENT: Updates library scope configuration memory
-			-- =========================================================================
 			self._SidebarMinimized = isMinimized
-			-- =========================================================================
 			
-			local changeWidth = isMinimized and -SidebarWidth or SidebarWidth
-			local changePos = isMinimized and (SidebarWidth / 2) or (-SidebarWidth / 2)
+			-- Calculate absolute targets directly using baseline configuration memory
+			local targetWidth = config.Scale.X.Offset
+			if isMinimized then
+				targetWidth = targetWidth - SidebarWidth
+			end
 			
+			local changePos = isMinimized and (SidebarWidth / 2) or 0
+			-- Using config.Position or absolute window anchoring prevents sliding offsets
+			local targetXPos = WindowFrame.Position.X.Offset + (isMinimized and (SidebarWidth / 2) or (-SidebarWidth / 2))
+			if not isMinimized and self._LastExpandedX then
+				targetXPos = self._LastExpandedX
+			elseif isMinimized then
+				self._LastExpandedX = WindowFrame.Position.X.Offset
+			end
+
+			-- Set absolute targets to override any mid-tween rendering interruptions
 			Airflow:CreateAnimation(WindowFrame, 0.4, Enum.EasingStyle.Quint, {
-				Size = WindowFrame.Size + UDim2.new(0, changeWidth, 0, 0),
-				Position = WindowFrame.Position + UDim2.new(0, changePos, 0, 0)
+				Size = UDim2.new(config.Scale.X.Scale, targetWidth, config.Scale.Y.Scale, config.Scale.Y.Offset),
+				Position = UDim2.new(WindowFrame.Position.X.Scale, targetXPos, WindowFrame.Position.Y.Scale, WindowFrame.Position.Y.Offset)
 			})
 			
 			Airflow:CreateAnimation(SidebarContainer, 0.4, Enum.EasingStyle.Quint, {
