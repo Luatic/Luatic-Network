@@ -4428,30 +4428,21 @@ function Response:AddPlayerSidebar(config)
 
 		local playerCards = {}
 
+		local isAnimating = false
 		MinimizeButton.MouseButton1Click:Connect(function()
-			isMinimized = not isMinimized
+			if isAnimating then return end
+			isAnimating = true
 			
+			isMinimized = not isMinimized
 			self._SidebarMinimized = isMinimized
 			
-			-- Calculate absolute targets directly using baseline configuration memory
-			local targetWidth = config.Scale.X.Offset
-			if isMinimized then
-				targetWidth = targetWidth - SidebarWidth
-			end
+			local baseWidth = config.Scale.X.Offset
+			local basePos = WindowFrame.Position
 			
-			local changePos = isMinimized and (SidebarWidth / 2) or 0
-			-- Using config.Position or absolute window anchoring prevents sliding offsets
-			local targetXPos = WindowFrame.Position.X.Offset + (isMinimized and (SidebarWidth / 2) or (-SidebarWidth / 2))
-			if not isMinimized and self._LastExpandedX then
-				targetXPos = self._LastExpandedX
-			elseif isMinimized then
-				self._LastExpandedX = WindowFrame.Position.X.Offset
-			end
-
-			-- Set absolute targets to override any mid-tween rendering interruptions
+			local targetWindowWidth = isMinimized and (baseWidth - SidebarWidth) or baseWidth
+			
 			Airflow:CreateAnimation(WindowFrame, 0.4, Enum.EasingStyle.Quint, {
-				Size = UDim2.new(config.Scale.X.Scale, targetWidth, config.Scale.Y.Scale, config.Scale.Y.Offset),
-				Position = UDim2.new(WindowFrame.Position.X.Scale, targetXPos, WindowFrame.Position.Y.Scale, WindowFrame.Position.Y.Offset)
+				Size = UDim2.new(config.Scale.X.Scale, targetWindowWidth, config.Scale.Y.Scale, WindowFrame.Size.Y.Offset)
 			})
 			
 			Airflow:CreateAnimation(SidebarContainer, 0.4, Enum.EasingStyle.Quint, {
@@ -4473,6 +4464,10 @@ function Response:AddPlayerSidebar(config)
 				Size = isMinimized and UDim2.new(1, 0, 0, 40) or UDim2.new(1, -SidebarWidth, 0, 40),
 				Position = isMinimized and UDim2.new(0.5, 0, 0, 0) or UDim2.new(0.5, SidebarWidth / 2, 0, 0)
 			})
+			
+			task.delay(0.4, function()
+				isAnimating = false
+			end)
 		end)
 
 		local function setVisualCardActive(p, state)
