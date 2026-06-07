@@ -4436,13 +4436,14 @@ function Response:AddPlayerSidebar(config)
 			isMinimized = not isMinimized
 			self._SidebarMinimized = isMinimized
 			
-			local baseWidth = config.Scale.X.Offset
-			local basePos = WindowFrame.Position
-			
-			local targetWindowWidth = isMinimized and (baseWidth - SidebarWidth) or baseWidth
+			local currentScale = config.Scale or (self.Config and self.Config.Scale)
+			local defaultWidth = currentScale and currentScale.X.Offset or 595
+			local targetWidth = isMinimized and (defaultWidth - SidebarWidth) or defaultWidth
+			local targetXPos = isMinimized and (WindowFrame.Position.X.Offset + (SidebarWidth / 2)) or (WindowFrame.Position.X.Offset - (SidebarWidth / 2))
 			
 			Airflow:CreateAnimation(WindowFrame, 0.4, Enum.EasingStyle.Quint, {
-				Size = UDim2.new(config.Scale.X.Scale, targetWindowWidth, config.Scale.Y.Scale, WindowFrame.Size.Y.Offset)
+				Size = UDim2.new(WindowFrame.Size.X.Scale, targetWidth, WindowFrame.Size.Y.Scale, WindowFrame.Size.Y.Offset),
+				Position = UDim2.new(WindowFrame.Position.X.Scale, targetXPos, WindowFrame.Position.Y.Scale, WindowFrame.Position.Y.Offset)
 			})
 			
 			Airflow:CreateAnimation(SidebarContainer, 0.4, Enum.EasingStyle.Quint, {
