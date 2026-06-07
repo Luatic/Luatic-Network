@@ -4508,6 +4508,14 @@ end)
 			end
 		end
 
+		-- =========================================================================
+		-- EXPORT TO API: Allows external textboxes to force a target update
+		-- =========================================================================
+		function SidebarResponse:SelectTarget(p)
+			selectPlayerProfile(p)
+		end
+		-- =========================================================================
+
 		-- 6. Player Card builder featuring the button color palette & vertical text alignment
 		local function addPlayerCard(p)
 			if playerCards[p] then return end
